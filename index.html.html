@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treinador de Algoritmos - Cubo Mágico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --secondary: #10b981;
+            --tertiary: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f3f4f6;
+            --bg-tertiary: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-inverse: #ffffff;
+            --border: #d1d5db;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --transition: 300ms ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1f2937;
+            --bg-secondary: #111827;
+            --bg-tertiary: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border: #4b5563;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background-color var(--transition), color var(--transition);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--bg-primary);
+            box-shadow: 0 2px 4px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background-color var(--transition);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color var(--transition);
+        }
+
+        .settings-btn:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        /* Screen Management */
+        .screen {
+            display: none;
+            min-height: calc(100vh - 60px);
+            padding: 2rem 0;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 300ms ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Home Screen */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .category-card {
+            background-color: var(--bg-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px var(--shadow);
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+
+        .category-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 12px var(--shadow);
+        }
+
+        .category-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .category-info {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .category-progress {
+            background-color: var(--bg-tertiary);
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary);
+            transition: width var(--transition);
+            border-radius: 4px;
+        }
+
+        .category-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-direction: column;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--text-inverse);
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--border);
+        }
+
+        .btn-success {
+            background-color: var(--secondary);
+            color: var(--text-inverse);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--text-inverse);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Training Screen */
+        .training-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background-color var(--transition);
+        }
+
+        .back-btn:hover {
+            background-color: var(--bg-tertiary);
+        }
+
+        .algorithm-display {
+            background-color: var(--bg-primary);
+            border-radius: 12px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px var(--shadow);
+        }
+
+        .algorithm-status {
+            display: inline-block;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .status-new {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-reviewing {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-mastered {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        [data-theme="dark"] .status-new {
+            background-color: #1e40af;
+            color: #dbeafe;
+        }
+
+        [data-theme="dark"] .status-reviewing {
+            background-color: #92400e;
+            color: #fef3c7;
+        }
+
+        [data-theme="dark"] .status-mastered {
+            background-color: #065f46;
+            color: #d1fae5;
+        }
+
+        .algorithm-text {
+            font-family: 'Courier New', monospace;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            letter-spacing: 0.1em;
+            word-spacing: 0.3em;
+        }
+
+        .solution-area {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .solution-area.show {
+            display: block;
+            animation: slideDown 300ms ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .solution-text {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            color: var(--secondary);
+        }
+
+        .training-controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .progress-info {
+            background-color: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        /* Selection Screen */
+        .selection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .selection-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .selection-controls .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .quick-select-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: auto;
+            padding-left: 1rem;
+            border-left: 2px solid var(--border);
+        }
+
+        .btn-number {
+            background-color: var(--tertiary);
+            color: var(--text-inverse);
+            min-width: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .btn-number:hover {
+            background-color: #dc8a04;
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .btn-number:active {
+            transform: translateY(0);
+        }
+
+        .algorithm-list {
+            background-color: var(--bg-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px var(--shadow);
+        }
+
+        .algorithm-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: background-color var(--transition);
+        }
+
+        .algorithm-item:last-child {
+            border-bottom: none;
+        }
+
+        .algorithm-item:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        .algorithm-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 1rem;
+            cursor: pointer;
+        }
+
+        .algorithm-content {
+            flex-grow: 1;
+        }
+
+        .algorithm-id {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .algorithm-notation {
+            font-family: 'Courier New', monospace;
+            color: var(--text-secondary);
+        }
+
+        .selection-footer {
+            position: sticky;
+            bottom: 0;
+            background-color: var(--bg-primary);
+            border-top: 2px solid var(--border);
+            padding: 1rem;
+            margin-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -4px 6px var(--shadow);
+        }
+
+        /* Settings Screen */
+        .settings-section {
+            background-color: var(--bg-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px var(--shadow);
+        }
+
+        .settings-section h3 {
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-weight: 500;
+        }
+
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background-color: var(--bg-tertiary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color var(--transition);
+        }
+
+        .toggle.active {
+            background-color: var(--primary);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform var(--transition);
+        }
+
+        .toggle.active .toggle-slider {
+            transform: translateX(26px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+            animation: fadeIn 300ms ease;
+        }
+
+        .modal-content {
+            background-color: var(--bg-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 25px var(--shadow);
+            animation: slideUp 300ms ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 1rem;
+        }
+
+        .modal-body {
+            margin-bottom: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            background-color: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .algorithm-text {
+                font-size: 1.75rem;
+            }
+
+            .category-buttons {
+                flex-direction: column;
+            }
+
+            .training-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .training-controls .btn {
+                width: 100%;
+            }
+
+            .selection-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .selection-controls .btn {
+                width: 100%;
+            }
+
+            .quick-select-buttons {
+                width: 100%;
+                justify-content: center;
+                margin-left: 0;
+                margin-top: 0.5rem;
+                padding-left: 0;
+                border-left: none;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+
+            .modal-footer .btn {
+                width: 100%;
+            }
+        }
+
+        /* Loading State */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--bg-tertiary);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .algorithm-item.selecting {
+            animation: highlight 300ms ease;
+        }
+
+        @keyframes highlight {
+            0% { background-color: var(--tertiary); opacity: 0.3; }
+            100% { background-color: transparent; opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 300ms ease;
+        }
+
+        /* Success Animation */
+        @keyframes success {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .success-animation {
+            animation: success 500ms ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1>Treinador de Algoritmos - Cubo Mágico</h1>
+                <button class="settings-btn" onclick="showScreen('settings')">⚙️</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Home Screen -->
+    <div id="home-screen" class="screen active">
+        <div class="container">
+            <div class="category-grid">
+                <!-- F2L Card -->
+                <div class="category-card">
+                    <div class="category-icon">🔄</div>
+                    <h2 class="category-title">F2L</h2>
+                    <div class="category-info">First Two Layers</div>
+                    <div class="category-info" id="f2l-progress">0/41 concluídos</div>
+                    <div class="category-progress">
+                        <div class="progress-bar" id="f2l-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="category-buttons">
+                        <button class="btn btn-primary" onclick="startTraining('F2L')">Treinar Todos</button>
+                        <button class="btn btn-secondary" onclick="showSelectionScreen('F2L')">Selecionar para Revisão</button>
+                    </div>
+                </div>
+
+                <!-- OLL Card -->
+                <div class="category-card">
+                    <div class="category-icon">⬆️</div>
+                    <h2 class="category-title">OLL</h2>
+                    <div class="category-info">Orientation of Last Layer</div>
+                    <div class="category-info" id="oll-progress">0/57 concluídos</div>
+                    <div class="category-progress">
+                        <div class="progress-bar" id="oll-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="category-buttons">
+                        <button class="btn btn-primary" onclick="startTraining('OLL')">Treinar Todos</button>
+                        <button class="btn btn-secondary" onclick="showSelectionScreen('OLL')">Selecionar para Revisão</button>
+                    </div>
+                </div>
+
+                <!-- PLL Card -->
+                <div class="category-card">
+                    <div class="category-icon">↩️</div>
+                    <h2 class="category-title">PLL</h2>
+                    <div class="category-info">Permutation of Last Layer</div>
+                    <div class="category-info" id="pll-progress">0/21 concluídos</div>
+                    <div class="category-progress">
+                        <div class="progress-bar" id="pll-progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="category-buttons">
+                        <button class="btn btn-primary" onclick="startTraining('PLL')">Treinar Todos</button>
+                        <button class="btn btn-secondary" onclick="showSelectionScreen('PLL')">Selecionar para Revisão</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Screen -->
+    <div id="training-screen" class="screen">
+        <div class="container">
+            <div class="training-header">
+                <button class="back-btn" onclick="showScreen('home')">
+                    <span>←</span> Voltar
+                </button>
+                <div id="training-counter">Algoritmo 1 de 1</div>
+            </div>
+
+            <div class="algorithm-display">
+                <div class="algorithm-status status-new" id="algorithm-status">Novo</div>
+                <div class="algorithm-text" id="algorithm-text">-</div>
+                <div class="solution-area" id="solution-area">
+                    <h3>Solução:</h3>
+                    <div class="solution-text" id="solution-text">-</div>
+                </div>
+            </div>
+
+            <div class="training-controls">
+                <button class="btn btn-primary" id="next-btn" onclick="nextAlgorithm()">Sortear Próximo</button>
+                <button class="btn btn-secondary" onclick="toggleSolution()">Mostrar/Ocultar Solução</button>
+                <button class="btn btn-success" onclick="markAsMastered()">Marcar como Dominado</button>
+            </div>
+
+            <div class="progress-info">
+                <div class="progress-bar" id="session-progress" style="width: 0%; height: 8px; margin: 0 auto; max-width: 500px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selection Screen -->
+    <div id="selection-screen" class="screen">
+        <div class="container">
+            <div class="selection-header">
+                <button class="back-btn" onclick="showScreen('home')">
+                    <span>←</span> Voltar
+                </button>
+                <button class="btn btn-primary" id="start-review-btn" onclick="startReview()" disabled>
+                    Iniciar Revisão
+                </button>
+            </div>
+
+            <h2 id="selection-title">Selecionar Algoritmos para Revisão</h2>
+
+            <div class="selection-controls">
+                <button class="btn btn-secondary" onclick="selectAll()">Selecionar Todos</button>
+                <button class="btn btn-secondary" onclick="clearSelection()">Limpar Seleção</button>
+                <button class="btn btn-secondary" onclick="selectNotMastered()">Apenas Não Dominados</button>
+                <button class="btn btn-secondary" onclick="selectMastered()">Apenas Dominados</button>
+                <div class="quick-select-buttons">
+                    <button class="btn btn-number" onclick="selectMultiple(5)" title="Selecionar mais 5 algoritmos">+5</button>
+                    <button class="btn btn-number" onclick="selectMultiple(10)" title="Selecionar mais 10 algoritmos">+10</button>
+                    <button class="btn btn-number" onclick="selectMultiple(20)" title="Selecionar mais 20 algoritmos">+20</button>
+                </div>
+            </div>
+
+            <div class="algorithm-list" id="algorithm-list">
+                <!-- Algorithm items will be inserted here -->
+            </div>
+
+            <div class="selection-footer">
+                <div id="selection-count">0 algoritmos selecionados</div>
+                <button class="btn btn-primary" id="start-review-footer-btn" onclick="startReview()" disabled>
+                    Iniciar Revisão
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen">
+        <div class="container">
+            <div class="training-header">
+                <button class="back-btn" onclick="showScreen('home')">
+                    <span>←</span> Voltar
+                </button>
+            </div>
+
+            <h2>Configurações</h2>
+
+            <div class="settings-section">
+                <h3>Preferências de Treino</h3>
+                <div class="setting-item">
+                    <span class="setting-label">Incluir algoritmos dominados</span>
+                    <div class="toggle" id="include-mastered-toggle" onclick="toggleSetting('includeMastered')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Modo reverso (mostrar solução primeiro)</span>
+                    <div class="toggle" id="reverse-mode-toggle" onclick="toggleSetting('reverseMode')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Aparência</h3>
+                <div class="setting-item">
+                    <span class="setting-label">Modo escuro</span>
+                    <div class="toggle" id="dark-mode-toggle" onclick="toggleDarkMode()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Estatísticas</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-practiced">0</div>
+                        <div class="stat-label">Algoritmos Praticados</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-mastered">0</div>
+                        <div class="stat-label">Algoritmos Dominados</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-sessions">0</div>
+                        <div class="stat-label">Sessões de Treino</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="review-sessions">0</div>
+                        <div class="stat-label">Revisões Personalizadas</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Gerenciar Dados</h3>
+                <div class="setting-item">
+                    <button class="btn btn-secondary" onclick="resetCategoryProgress()">Resetar Progresso da Categoria</button>
+                </div>
+                <div class="setting-item">
+                    <button class="btn btn-danger" onclick="resetAllData()">Resetar Todos os Dados</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Título</h3>
+            </div>
+            <div class="modal-body" id="modal-body">
+                Conteúdo
+            </div>
+            <div class="modal-footer" id="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Algorithm Data
+        const algorithmData = {
+            F2L: [
+                { id: "f2l_001", case: "R U' R'", solution: "R U R'" },
+                { id: "f2l_002", case: "L' U L", solution: "L' U' L" },
+                { id: "f2l_003", case: "R U R' U'", solution: "U R U' R'" },
+                { id: "f2l_004", case: "L' U' L U", solution: "U' L' U L" },
+                { id: "f2l_005", case: "F' U' F U R U R' U'", solution: "U R U' R' U' F' U F" },
+                { id: "f2l_006", case: "F U F' U' L' U' L U", solution: "U' L' U L U F U' F'" },
+                { id: "f2l_007", case: "L' U' L U L' U' L", solution: "L' U L U' L' U L" },
+                { id: "f2l_008", case: "R U' R' U R U' R'", solution: "R U R' U' R U R'" },
+                { id: "f2l_009", case: "R U R' U' R U R'", solution: "R U' R' U R U' R'" },
+                { id: "f2l_010", case: "L' U L U' L' U L", solution: "L' U' L U L' U' L" },
+                { id: "f2l_011", case: "R U' R' U R U' R' U R U' R'", solution: "R U R' U' R U R' U' R U R'" },
+                { id: "f2l_012", case: "L' U2 L y' R U R'", solution: "R U' R' y L' U2 L" },
+                { id: "f2l_013", case: "R U' R' U2 R U' R' U'", solution: "U R U R' U2 R U R'" },
+                { id: "f2l_014", case: "R U' R' U F' U F U'", solution: "U F' U' F U' R U R'" },
+                { id: "f2l_015", case: "R U R' U2 R U R' U", solution: "U' R U' R' U2 R U' R'" },
+                { id: "f2l_016", case: "R' U R Dw' R U' R' U", solution: "U' R U R' Dw R' U' R" },
+                { id: "f2l_017", case: "R' U R Dw' U' R U R'", solution: "R U' R' U Dw R' U' R" },
+                { id: "f2l_018", case: "R' U' R U2 R' U2 R Dw'", solution: "Dw R' U2 R U2 R' U R" },
+                { id: "f2l_019", case: "R' U' R U2 R' U R Dw'", solution: "Dw R' U' R U2 R' U R" },
+                { id: "f2l_020", case: "R U' R' U' R U R' U", solution: "U' R U' R' U R U R'" },
+                { id: "f2l_021", case: "R U' R' U' R U' R' U", solution: "U' R U R' U R U R'" },
+                { id: "f2l_022", case: "R U' R' Dw R' U2 R Dw'", solution: "Dw R' U2 R Dw' R U R'" },
+                { id: "f2l_023", case: "R U R' U' R U R' U2 R U' R'", solution: "R U R' U2 R U' R' U R U' R'" },
+                { id: "f2l_024", case: "R U R' U2 R U2 R' U", solution: "U' R U2 R' U2 R U' R'" },
+                { id: "f2l_025", case: "R U R' U2 R U' R' U", solution: "U' R U R' U2 R U' R'" },
+                { id: "f2l_026", case: "R' U R U R' U' R Dw'", solution: "Dw R' U R U' R' U' R" },
+                { id: "f2l_027", case: "U' R U' R' U F' U' F", solution: "F' U F U' R U R' U" },
+                { id: "f2l_028", case: "U' R U2 R' U F' U' F", solution: "F' U F U' R U2 R' U" },
+                { id: "f2l_029", case: "R U R' U2 R U R' U' R U R'", solution: "R U' R' U R U' R' U2 R U' R'" },
+                { id: "f2l_030", case: "U2 R U R' U R U' R'", solution: "R U R' U' R U' R' U2" },
+                { id: "f2l_031", case: "U R U2 R' U R U' R'", solution: "R U R' U' R U2 R' U'" },
+                { id: "f2l_032", case: "R U2 R' U' R U R'", solution: "R U' R' U R U2 R'" },
+                { id: "f2l_033", case: "F U R U' R' F' R U' R'", solution: "R U R' F R U R' U' F'" },
+                { id: "f2l_034", case: "F' L' U2 L F", solution: "F' L' U2 L F" },
+                { id: "f2l_035", case: "y U' L' U2 L U' L' U L", solution: "L' U' L U L' U2 L U y'" },
+                { id: "f2l_036", case: "y L' U2 L U L' U' L", solution: "L' U L U' L' U2 L y'" },
+                { id: "f2l_037", case: "R U' R' Dw R' U2 R U R' U2 R", solution: "R' U2 R U' R' U2 R Dw' R U R'" },
+                { id: "f2l_038", case: "R U R' U2 R U' R' U R U R'", solution: "R U' R' U' R U R' U2 R U' R'" },
+                { id: "f2l_039", case: "R U R' U' R U2 R' U' R U R'", solution: "R U' R' U R U2 R' U R U' R'" },
+                { id: "f2l_040", case: "R U R' U' R U' R' U2 F' U' F", solution: "F' U F U2 R U R' U R U' R'" },
+                { id: "f2l_041", case: "R U' R' Dw R' U' R U' R' U' R", solution: "R' U R U R' U R Dw' R U R'" }
+            ],
+            
+            PLL: [
+                { id: "pll_ua", case: "Ua Permutation", solution: "R2 U' R' U' R U R U R U' R" },
+                { id: "pll_ub", case: "Ub Permutation", solution: "R' U R' U' R' U' R' U R U R2" },
+                { id: "pll_h", case: "H Permutation", solution: "M2 U M2 U2 M2 U M2" },
+                { id: "pll_z", case: "Z Permutation", solution: "M2 U M2 U M' U2 M2 U2 M' U2" },
+                { id: "pll_aa", case: "Aa Permutation", solution: "x R' U R' D2 R U' R' D2 R2" },
+                { id: "pll_ab", case: "Ab Permutation", solution: "x R2 D2 R U R' D2 R U' R" },
+                { id: "pll_t", case: "T Permutation", solution: "R U R' U' R' F R2 U' R' U' R U R' F'" },
+                { id: "pll_f", case: "F Permutation", solution: "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R" },
+                { id: "pll_y", case: "Y Permutation", solution: "F R U' R' U' R U R' F' R U R' U' R' F R F'" },
+                { id: "pll_e", case: "E Permutation", solution: "x' R U' R' D R U R' D' R U R' D R U' R' D'" },
+                { id: "pll_ja", case: "Ja Permutation", solution: "R' U2 R U2 R' F R U R' U' R' F' R2 U'" },
+                { id: "pll_jb", case: "Jb Permutation", solution: "x R2 F R F' R U2 Rw' U Rw U2 x'" },
+                { id: "pll_ra", case: "Ra Permutation", solution: "R' U2 R U2 R' F R U R' U' R' F' R2 U'" },
+                { id: "pll_rb", case: "Rb Permutation", solution: "R U' R' U' R U R D R' U' R D' R' U2 R'" },
+                { id: "pll_na", case: "Na Permutation", solution: "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'" },
+                { id: "pll_nb", case: "Nb Permutation", solution: "R' U R U' R' F' U' F R U R' F R' F' R U' R" },
+                { id: "pll_v", case: "V Permutation", solution: "R' U R' U' y R' F' R2 U' R' U R' F R F" },
+                { id: "pll_ga", case: "Ga Permutation", solution: "R2 U R' U R' U' R U' R2 U' D R' U R D'" },
+                { id: "pll_gb", case: "Gb Permutation", solution: "R' U' R U D' R2 U R' U R U' R U' R2 D" },
+                { id: "pll_gc", case: "Gc Permutation", solution: "R2 U' R U' R U R' U R2 U D' R U' R' D" },
+                { id: "pll_gd", case: "Gd Permutation", solution: "R U R' U' D R2 U' R U' R' U R' U R2 D'" }
+            ],
+            
+            OLL: [
+                { id: "oll_001", case: "OLL 1", solution: "R U2 R' U' R U' R'" },
+                { id: "oll_002", case: "OLL 2", solution: "R' U2 R U R' U R" },
+                { id: "oll_003", case: "OLL 3", solution: "R U2 R' U' R U R' U' R U' R'" },
+                { id: "oll_004", case: "OLL 4", solution: "R' U2 R2 U R2 U R2 U2 R'" },
+                { id: "oll_005", case: "OLL 5", solution: "F R' F' Rw U R U' Rw'" },
+                { id: "oll_006", case: "OLL 6", solution: "R' U2 R' D' R U2 R' D R2" },
+                { id: "oll_007", case: "OLL 7", solution: "F' L' F R' F' L F R" },
+                { id: "oll_008", case: "OLL 8", solution: "F U R U' R' F'" },
+                { id: "oll_009", case: "OLL 9", solution: "F R' F' R U R U' R'" },
+                { id: "oll_010", case: "OLL 10", solution: "F R U R' U' F'" },
+                { id: "oll_011", case: "OLL 11", solution: "R' F' U' F U R" },
+                { id: "oll_012", case: "OLL 12", solution: "Fw R' F' R U R U' R' S'" },
+                { id: "oll_013", case: "OLL 13", solution: "R' F R U R' U' F' U R" },
+                { id: "oll_014", case: "OLL 14", solution: "F U R U' R' U R U' R' F'" },
+                { id: "oll_015", case: "OLL 15", solution: "R' U' F R' F' R F R' F' R U R" },
+                { id: "oll_016", case: "OLL 16", solution: "Lw' U2 L U L' U' L U L' U Lw" },
+                { id: "oll_017", case: "OLL 17", solution: "Rw U2 R' U' R U R' U' R U' Rw'" },
+                { id: "oll_018", case: "OLL 18", solution: "R B' R2 F R2 B R2 F' R" },
+                { id: "oll_019", case: "OLL 19", solution: "Rw' U Rw2 U' Rw2 U' Rw2 U Rw'" },
+                { id: "oll_020", case: "OLL 20", solution: "R U R' U' R' F R F'" },
+                { id: "oll_021", case: "OLL 21", solution: "R U2 R' F R' F' R2 U2 R'" },
+                { id: "oll_022", case: "OLL 22", solution: "Lw' U' L U' L' U2 Lw" },
+                { id: "oll_023", case: "OLL 23", solution: "Rw U R' U R U2 Rw'" },
+                { id: "oll_024", case: "OLL 24", solution: "Rw U2 R' U' R U' Rw'" },
+                { id: "oll_025", case: "OLL 25", solution: "Lw' U2 L U L' U Lw" },
+                { id: "oll_026", case: "OLL 26", solution: "M U' R U2 R' U' R U' R' M'" },
+                { id: "oll_027", case: "OLL 27", solution: "M' U R' U2 R U R' U R M" },
+                { id: "oll_028", case: "OLL 28", solution: "Rw U R' U' Rw' R U R U' R'" },
+                { id: "oll_029", case: "OLL 29", solution: "R U R' U' Rw R' U R U' Rw'" },
+                { id: "oll_030", case: "OLL 30", solution: "F R U R' U' R U R' U' F'" },
+                { id: "oll_031", case: "OLL 31", solution: "R' U' F U R U' R' F' R" },
+                { id: "oll_032", case: "OLL 32", solution: "R' U' R U' R' U F' U F R" },
+                { id: "oll_033", case: "OLL 33", solution: "Rw U Rw' R U R' U' R U R' U' Rw U' Rw'" },
+                { id: "oll_034", case: "OLL 34", solution: "R' U' F R' F' R U R" },
+                { id: "oll_035", case: "OLL 35", solution: "F U R' U' R' F' R U R2 U' R'" },
+                { id: "oll_036", case: "OLL 36", solution: "F R' F' R U R U R' U' R U' R'" },
+                { id: "oll_037", case: "OLL 37", solution: "F' L F L' U' L' U' L U L' U L" },
+                { id: "oll_038", case: "OLL 38", solution: "L F' L' U' L U F U' L'" },
+                { id: "oll_039", case: "OLL 39", solution: "R' U' F U R U' R' F' R" },
+                { id: "oll_040", case: "OLL 40", solution: "F U F' R' F R U' R' F' R" },
+                { id: "oll_041", case: "OLL 41", solution: "F' U' F Rw U' Rw' U Rw U Rw'" },
+                { id: "oll_042", case: "OLL 42", solution: "Rw U Rw' U R U' M' U' Rw'" },
+                { id: "oll_043", case: "OLL 43", solution: "Lw' U' Lw U' L' U M' U Lw" },
+                { id: "oll_044", case: "OLL 44", solution: "R U' R' F' U F R U R' U R U' R'" },
+                { id: "oll_045", case: "OLL 45", solution: "F U R U2 R' U' R U2 R' U' F'" },
+                { id: "oll_046", case: "OLL 46", solution: "F U R U' R' F' R U2 R' U' R U' R'" },
+                { id: "oll_047", case: "OLL 47", solution: "F U R U' R' F' R' U2 R U R' U R" },
+                { id: "oll_048", case: "OLL 48", solution: "F U R U' R2 F' R U R U' R'" },
+                { id: "oll_049", case: "OLL 49", solution: "R U2 R' F R' F' R U' R U' R'" },
+                { id: "oll_050", case: "OLL 50", solution: "Rw U R' U' M2 U R U' R' U' M' Rw" },
+                { id: "oll_051", case: "OLL 51", solution: "F U R U' R' U R U' R' F'" },
+                { id: "oll_052", case: "OLL 52", solution: "Rw' U2 R U R' U Rw2 U2 R' U' R U' Rw'" },
+                { id: "oll_053", case: "OLL 53", solution: "F R' F' R U2 F R' F' R U' R U' R'" },
+                { id: "oll_054", case: "OLL 54", solution: "F U R U' R' F' U Fw U R U' R' Fw'" },
+                { id: "oll_055", case: "OLL 55", solution: "F U R U' R' F' U' Fw U R U' R' Fw'" },
+                { id: "oll_056", case: "OLL 56", solution: "R U' R2 D' Rw U' Rw' D R2 U R'" },
+                { id: "oll_057", case: "OLL 57", solution: "F R' F' R U2 F R' F' R2 U2 R'" }
+            ]
+        };
+
+        // State Management
+        let currentCategory = null;
+        let currentAlgorithms = [];
+        let currentIndex = 0;
+        let sessionAlgorithms = [];
+        let shownAlgorithms = [];
+        let isReviewMode = false;
+        let selectedAlgorithms = [];
+
+        // Local Storage Keys
+        const STORAGE_KEY = 'cubicTrainerData';
+
+        // Initialize app
+        function init() {
+            loadData();
+            updateUI();
+            applyTheme();
+        }
+
+        // Screen Management
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(`${screenName}-screen`).classList.add('active');
+            
+            if (screenName === 'home') {
+                updateHomeScreen();
+            } else if (screenName === 'settings') {
+                updateSettingsScreen();
+            }
+        }
+
+        // Data Management
+        function loadData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                window.appData = JSON.parse(stored);
+            } else {
+                window.appData = {
+                    progress: {
+                        F2L: { completed: [], mastered: [], selectedForReview: [] },
+                        OLL: { completed: [], mastered: [], selectedForReview: [] },
+                        PLL: { completed: [], mastered: [], selectedForReview: [] }
+                    },
+                    settings: {
+                        theme: 'light',
+                        includeMastered: false,
+                        reverseMode: false
+                    },
+                    statistics: {
+                        totalSessions: 0,
+                        totalPracticed: 0,
+                        customReviewSessions: 0
+                    }
+                };
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(window.appData));
+        }
+
+        // UI Update Functions
+        function updateUI() {
+            updateHomeScreen();
+        }
+
+        function updateHomeScreen() {
+            const categories = ['F2L', 'OLL', 'PLL'];
+            categories.forEach(cat => {
+                const progress = window.appData.progress[cat];
+                const total = algorithmData[cat].length;
+                const completed = progress.completed.length;
+                const percentage = (completed / total) * 100;
+                
+                document.getElementById(`${cat.toLowerCase()}-progress`).textContent = 
+                    `${completed}/${total} concluídos`;
+                document.getElementById(`${cat.toLowerCase()}-progress-bar`).style.width = 
+                    `${percentage}%`;
+            });
+        }
+
+        function updateSettingsScreen() {
+            // Update toggles
+            document.getElementById('include-mastered-toggle').classList.toggle(
+                'active', window.appData.settings.includeMastered
+            );
+            document.getElementById('reverse-mode-toggle').classList.toggle(
+                'active', window.appData.settings.reverseMode
+            );
+            document.getElementById('dark-mode-toggle').classList.toggle(
+                'active', window.appData.settings.theme === 'dark'
+            );
+            
+            // Update statistics
+            const stats = window.appData.statistics;
+            document.getElementById('total-practiced').textContent = stats.totalPracticed || 0;
+            
+            let totalMastered = 0;
+            ['F2L', 'OLL', 'PLL'].forEach(cat => {
+                totalMastered += window.appData.progress[cat].mastered.length;
+            });
+            document.getElementById('total-mastered').textContent = totalMastered;
+            document.getElementById('total-sessions').textContent = stats.totalSessions || 0;
+            document.getElementById('review-sessions').textContent = stats.customReviewSessions || 0;
+        }
+
+        // Training Functions
+        function startTraining(category) {
+            currentCategory = category;
+            isReviewMode = false;
+            currentAlgorithms = algorithmData[category];
+            sessionAlgorithms = [...currentAlgorithms];
+            shownAlgorithms = [];
+            currentIndex = 0;
+            
+            window.appData.statistics.totalSessions++;
+            saveData();
+            
+            showScreen('training');
+            updateTrainingHeader();
+            nextAlgorithm();
+        }
+
+        function updateTrainingHeader() {
+            const title = isReviewMode ? 
+                `Revisão Personalizada - ${currentCategory}` : 
+                `Treino de ${currentCategory}`;
+            document.querySelector('#training-screen h2') || 
+                (() => {
+                    const h2 = document.createElement('h2');
+                    h2.style.marginBottom = '1rem';
+                    document.querySelector('#training-screen .container').insertBefore(
+                        h2, document.querySelector('.algorithm-display')
+                    );
+                    return h2;
+                })();
+            
+            const h2 = document.querySelector('#training-screen h2');
+            if (h2) h2.textContent = title;
+        }
+
+        function nextAlgorithm() {
+            if (shownAlgorithms.length === currentAlgorithms.length) {
+                showCompletionModal();
+                return;
+            }
+            
+            let availableAlgorithms = sessionAlgorithms.filter(
+                algo => !shownAlgorithms.includes(algo.id)
+            );
+            
+            if (!window.appData.settings.includeMastered) {
+                availableAlgorithms = availableAlgorithms.filter(
+                    algo => !window.appData.progress[currentCategory].mastered.includes(algo.id)
+                );
+            }
+            
+            if (availableAlgorithms.length === 0) {
+                if (shownAlgorithms.length < currentAlgorithms.length) {
+                    // All non-mastered shown, include mastered
+                    availableAlgorithms = sessionAlgorithms.filter(
+                        algo => !shownAlgorithms.includes(algo.id)
+                    );
+                } else {
+                    showCompletionModal();
+                    return;
+                }
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableAlgorithms.length);
+            const algorithm = availableAlgorithms[randomIndex];
+            
+            shownAlgorithms.push(algorithm.id);
+            displayAlgorithm(algorithm);
+            updateProgress();
+        }
+
+        function displayAlgorithm(algorithm) {
+            const progress = window.appData.progress[currentCategory];
+            const status = progress.mastered.includes(algorithm.id) ? 'mastered' :
+                          progress.completed.includes(algorithm.id) ? 'reviewing' : 'new';
+            
+            document.getElementById('algorithm-status').textContent = 
+                status === 'mastered' ? 'Dominado' :
+                status === 'reviewing' ? 'Revisando' : 'Novo';
+            document.getElementById('algorithm-status').className = 
+                `algorithm-status status-${status}`;
+            
+            if (window.appData.settings.reverseMode) {
+                document.getElementById('algorithm-text').textContent = algorithm.solution;
+                document.getElementById('solution-text').textContent = algorithm.case;
+            } else {
+                document.getElementById('algorithm-text').textContent = algorithm.case;
+                document.getElementById('solution-text').textContent = algorithm.solution;
+            }
+            
+            document.getElementById('solution-area').classList.remove('show');
+            
+            // Track as completed
+            if (!progress.completed.includes(algorithm.id)) {
+                progress.completed.push(algorithm.id);
+                window.appData.statistics.totalPracticed++;
+                saveData();
+            }
+        }
+
+        function updateProgress() {
+            const shown = shownAlgorithms.length;
+            const total = currentAlgorithms.length;
+            const percentage = (shown / total) * 100;
+            
+            document.getElementById('training-counter').textContent = 
+                `Algoritmo ${shown} de ${total}${isReviewMode ? ' selecionados' : ''}`;
+            document.getElementById('session-progress').style.width = `${percentage}%`;
+        }
+
+        function toggleSolution() {
+            document.getElementById('solution-area').classList.toggle('show');
+        }
+
+        function markAsMastered() {
+            const currentAlgo = sessionAlgorithms.find(
+                algo => algo.id === shownAlgorithms[shownAlgorithms.length - 1]
+            );
+            
+            if (currentAlgo) {
+                const progress = window.appData.progress[currentCategory];
+                if (!progress.mastered.includes(currentAlgo.id)) {
+                    progress.mastered.push(currentAlgo.id);
+                    saveData();
+                    
+                    // Update status display
+                    document.getElementById('algorithm-status').textContent = 'Dominado';
+                    document.getElementById('algorithm-status').className = 
+                        'algorithm-status status-mastered success-animation';
+                }
+            }
+        }
+
+        function showCompletionModal() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = 
+                'Todos os algoritmos já foram sorteados!';
+            document.getElementById('modal-body').textContent = 
+                'Você praticou todos os algoritmos disponíveis nesta sessão.';
+            
+            const footer = document.getElementById('modal-footer');
+            footer.innerHTML = `
+                <button class="btn btn-success" onclick="restartSession()">✅ Sim, Recomeçar</button>
+                <button class="btn btn-danger" onclick="closeModalAndReturn()">❌ Não, Voltar</button>
+            `;
+            
+            modal.classList.add('show');
+        }
+
+        function restartSession() {
+            closeModal();
+            shownAlgorithms = [];
+            currentIndex = 0;
+            nextAlgorithm();
+        }
+
+        function closeModalAndReturn() {
+            closeModal();
+            showScreen('home');
+        }
+
+        // Selection Screen Functions
+        function showSelectionScreen(category) {
+            currentCategory = category;
+            selectedAlgorithms = [...(window.appData.progress[category].selectedForReview || [])];
+            
+            document.getElementById('selection-title').textContent = 
+                `Selecionar Algoritmos ${category} para Revisão`;
+            
+            const listContainer = document.getElementById('algorithm-list');
+            listContainer.innerHTML = '';
+            
+            algorithmData[category].forEach(algo => {
+                const progress = window.appData.progress[category];
+                const status = progress.mastered.includes(algo.id) ? 'mastered' :
+                              progress.completed.includes(algo.id) ? 'reviewing' : 'new';
+                
+                const item = document.createElement('div');
+                item.className = 'algorithm-item';
+                item.innerHTML = `
+                    <input type="checkbox" class="algorithm-checkbox" 
+                           data-id="${algo.id}" 
+                           ${selectedAlgorithms.includes(algo.id) ? 'checked' : ''}
+                           onchange="updateSelection('${algo.id}')">
+                    <div class="algorithm-content">
+                        <div class="algorithm-id">${algo.id.replace('_', ' ').toUpperCase()}</div>
+                        <div class="algorithm-notation">${algo.case}</div>
+                        <div class="algorithm-status status-${status}">
+                            ${status === 'mastered' ? 'Dominado' :
+                              status === 'reviewing' ? 'Revisando' : 'Novo'}
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+            
+            updateSelectionCount();
+            showScreen('selection');
+        }
+
+        function updateSelection(algoId) {
+            const index = selectedAlgorithms.indexOf(algoId);
+            if (index > -1) {
+                selectedAlgorithms.splice(index, 1);
+            } else {
+                selectedAlgorithms.push(algoId);
+            }
+            updateSelectionCount();
+        }
+
+        function updateSelectionCount() {
+            const count = selectedAlgorithms.length;
+            const total = algorithmData[currentCategory].length;
+            const remaining = total - count;
+            
+            let text = `${count} algoritmo${count !== 1 ? 's' : ''} selecionado${count !== 1 ? 's' : ''}`;
+            if (count > 0 && remaining > 0) {
+                text += ` (${remaining} restante${remaining !== 1 ? 's' : ''})`;
+            } else if (count === total) {
+                text += ' (Todos)';
+            }
+            
+            document.getElementById('selection-count').textContent = text;
+            
+            const enabled = count > 0;
+            document.getElementById('start-review-btn').disabled = !enabled;
+            document.getElementById('start-review-footer-btn').disabled = !enabled;
+            
+            // Atualizar visual dos botões de seleção múltipla
+            const quickButtons = document.querySelectorAll('.btn-number');
+            quickButtons.forEach(btn => {
+                if (remaining === 0) {
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                } else {
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                }
+            });
+        }
+
+        function selectAll() {
+            selectedAlgorithms = algorithmData[currentCategory].map(a => a.id);
+            updateCheckboxes();
+            updateSelectionCount();
+        }
+
+        function clearSelection() {
+            selectedAlgorithms = [];
+            updateCheckboxes();
+            updateSelectionCount();
+        }
+
+        function selectNotMastered() {
+            const mastered = window.appData.progress[currentCategory].mastered;
+            selectedAlgorithms = algorithmData[currentCategory]
+                .filter(a => !mastered.includes(a.id))
+                .map(a => a.id);
+            updateCheckboxes();
+            updateSelectionCount();
+        }
+
+        function selectMastered() {
+            const mastered = window.appData.progress[currentCategory].mastered;
+            selectedAlgorithms = algorithmData[currentCategory]
+                .filter(a => mastered.includes(a.id))
+                .map(a => a.id);
+            updateCheckboxes();
+            updateSelectionCount();
+        }
+
+        function selectMultiple(count) {
+            const allAlgorithms = algorithmData[currentCategory];
+            const unselectedAlgorithms = allAlgorithms.filter(
+                algo => !selectedAlgorithms.includes(algo.id)
+            );
+            
+            if (unselectedAlgorithms.length === 0) {
+                // Todos já estão selecionados - mostrar feedback visual
+                const countElement = document.getElementById('selection-count');
+                countElement.classList.add('shake');
+                setTimeout(() => countElement.classList.remove('shake'), 300);
+                
+                document.querySelectorAll('.algorithm-item').forEach(item => {
+                    item.classList.add('selecting');
+                    setTimeout(() => item.classList.remove('selecting'), 300);
+                });
+                return;
+            }
+            
+            // Seleciona até 'count' algoritmos não selecionados
+            const toSelect = Math.min(count, unselectedAlgorithms.length);
+            const newlySelected = [];
+            
+            for (let i = 0; i < toSelect; i++) {
+                selectedAlgorithms.push(unselectedAlgorithms[i].id);
+                newlySelected.push(unselectedAlgorithms[i].id);
+            }
+            
+            updateCheckboxes();
+            updateSelectionCount();
+            
+            // Adicionar animação aos itens recém-selecionados
+            setTimeout(() => {
+                newlySelected.forEach(id => {
+                    const checkbox = document.querySelector(`[data-id="${id}"]`);
+                    if (checkbox) {
+                        const item = checkbox.closest('.algorithm-item');
+                        if (item) {
+                            item.classList.add('selecting');
+                            setTimeout(() => item.classList.remove('selecting'), 300);
+                        }
+                    }
+                });
+            }, 50);
+        }
+
+        function updateCheckboxes() {
+            document.querySelectorAll('.algorithm-checkbox').forEach(checkbox => {
+                checkbox.checked = selectedAlgorithms.includes(checkbox.dataset.id);
+            });
+        }
+
+        function startReview() {
+            if (selectedAlgorithms.length === 0) return;
+            
+            window.appData.progress[currentCategory].selectedForReview = [...selectedAlgorithms];
+            saveData();
+            
+            isReviewMode = true;
+            currentAlgorithms = algorithmData[currentCategory].filter(
+                a => selectedAlgorithms.includes(a.id)
+            );
+            sessionAlgorithms = [...currentAlgorithms];
+            shownAlgorithms = [];
+            currentIndex = 0;
+            
+            window.appData.statistics.customReviewSessions++;
+            saveData();
+            
+            showScreen('training');
+            updateTrainingHeader();
+            nextAlgorithm();
+        }
+
+        // Settings Functions
+        function toggleSetting(settingName) {
+            window.appData.settings[settingName] = !window.appData.settings[settingName];
+            saveData();
+            updateSettingsScreen();
+        }
+
+        function toggleDarkMode() {
+            window.appData.settings.theme = 
+                window.appData.settings.theme === 'dark' ? 'light' : 'dark';
+            saveData();
+            applyTheme();
+            updateSettingsScreen();
+        }
+
+        function applyTheme() {
+            if (window.appData.settings.theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        }
+
+        function resetCategoryProgress() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = 'Resetar Progresso';
+            document.getElementById('modal-body').innerHTML = `
+                <p>Selecione a categoria para resetar:</p>
+                <select id="category-select" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">
+                    <option value="">Selecione...</option>
+                    <option value="F2L">F2L</option>
+                    <option value="OLL">OLL</option>
+                    <option value="PLL">PLL</option>
+                </select>
+            `;
+            
+            const footer = document.getElementById('modal-footer');
+            footer.innerHTML = `
+                <button class="btn btn-danger" onclick="confirmResetCategory()">Resetar</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            `;
+            
+            modal.classList.add('show');
+        }
+
+        function confirmResetCategory() {
+            const category = document.getElementById('category-select').value;
+            if (category) {
+                window.appData.progress[category] = {
+                    completed: [],
+                    mastered: [],
+                    selectedForReview: []
+                };
+                saveData();
+                updateUI();
+                closeModal();
+            }
+        }
+
+        function resetAllData() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = 'Resetar Todos os Dados';
+            document.getElementById('modal-body').textContent = 
+                'Tem certeza? Esta ação não pode ser desfeita e todos os seus dados serão perdidos.';
+            
+            const footer = document.getElementById('modal-footer');
+            footer.innerHTML = `
+                <button class="btn btn-danger" onclick="confirmResetAll()">Sim, Resetar Tudo</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            `;
+            
+            modal.classList.add('show');
+        }
+
+        function confirmResetAll() {
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
