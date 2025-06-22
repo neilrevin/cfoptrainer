@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treinador de Algoritmos - Cubo Mágico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --secondary: #10b981;
+            --tertiary: #f59e0b;
+            --bg-light: #f3f4f6;
+            --bg-dark: #1f2937;
+            --text-light: #111827;
+            --text-dark: #f9fafb;
+            --card-light: #ffffff;
+            --card-dark: #374151;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        body.dark {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        body.dark .card {
+            background: var(--card-dark);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-light);
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        body.dark .header {
+            background: var(--card-dark);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .settings-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .main-content {
+            margin-top: 5rem;
+            min-height: calc(100vh - 6rem);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: var(--card-light);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-info {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+
+        body.dark .card-info {
+            color: #9ca3af;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        body.dark .progress-bar {
+            background: #4b5563;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 0.5rem;
+        }
+
+        .button:last-child {
+            margin-bottom: 0;
+        }
+
+        .button-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .button-primary:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        .button-secondary {
+            background: #e5e7eb;
+            color: var(--text-light);
+        }
+
+        body.dark .button-secondary {
+            background: #4b5563;
+            color: var(--text-dark);
+        }
+
+        .button-secondary:hover:not(:disabled) {
+            background: #d1d5db;
+        }
+
+        body.dark .button-secondary:hover:not(:disabled) {
+            background: #6b7280;
+        }
+
+        .button-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .button-danger:hover:not(:disabled) {
+            background: #b91c1c;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        body:not(.no-animations) .screen.active {
+            animation: fadeIn 0.3s ease;
+        }
+
+        body.no-animations * {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .algorithm-label {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.125rem;
+        }
+
+        .algorithm-display {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 0 0 2rem 0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body.dark .algorithm-display {
+            background: var(--bg-dark);
+            border-color: #4b5563;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .status-new {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-reviewing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-mastered {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        body.dark .status-new {
+            background: #1e3a8a;
+            color: #93bbfc;
+        }
+
+        body.dark .status-reviewing {
+            background: #78350f;
+            color: #fcd34d;
+        }
+
+        body.dark .status-mastered {
+            background: #064e3b;
+            color: #6ee7b7;
+        }
+
+        .solution-area {
+            background: #f3f4f6;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        body.dark .solution-area {
+            background: var(--bg-dark);
+        }
+
+        .solution-area.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; }
+            to { opacity: 1; max-height: 500px; }
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .checkbox-list {
+            max-height: 60vh;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            transition: var(--transition);
+        }
+
+        body.dark .checkbox-item {
+            border-color: #4b5563;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 1rem;
+            cursor: pointer;
+        }
+
+        .checkbox-content {
+            flex: 1;
+        }
+
+        .checkbox-label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .checkbox-algorithm {
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        body.dark .checkbox-algorithm {
+            color: #9ca3af;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        body.dark .filter-button {
+            background: var(--card-dark);
+            border-color: #4b5563;
+        }
+
+        .filter-button:hover:not(:disabled) {
+            background: #f3f4f6;
+        }
+
+        body.dark .filter-button:hover:not(:disabled) {
+            background: #4b5563;
+        }
+
+        .filter-button.multi-select {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .filter-button.multi-select:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        body.dark .filter-button.multi-select {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        body.dark .filter-button.multi-select:hover:not(:disabled) {
+            background: #1d4ed8;
+        }
+
+        .selected-count {
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 1rem 0;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-light);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: modalIn 0.3s ease;
+        }
+
+        body.dark .modal-content {
+            background: var(--card-dark);
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .modal p {
+            margin-bottom: 2rem;
+            color: #6b7280;
+        }
+
+        body.dark .modal p {
+            color: #9ca3af;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f3f4f6;
+            border-radius: 0.5rem;
+        }
+
+        body.dark .toggle-switch {
+            background: var(--bg-dark);
+        }
+
+        .switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .switch.active {
+            background: var(--primary);
+        }
+
+        .switch-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .switch.active .switch-slider {
+            transform: translateX(26px);
+        }
+
+        #sessionTimer {
+            text-align: center;
+            color: #6b7280;
+            font-weight: 600;
+            font-size: 1.125rem;
+            margin-top: 0.5rem;
+        }
+
+        body.dark #sessionTimer {
+            color: #9ca3af;
+        }
+
+        .info-text {
+            color: #6b7280;
+        }
+
+        body.dark .info-text {
+            color: #9ca3af;
+        }
+
+        .tip-text {
+            color: #6b7280;
+        }
+
+        body.dark .tip-text {
+            color: #9ca3af;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .algorithm-display {
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1 id="headerTitle">Treinador de Algoritmos - Cubo Mágico</h1>
+            <button class="settings-btn" onclick="showScreen('settings')">⚙️</button>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        <!-- Home Screen -->
+        <div id="homeScreen" class="screen active">
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">🔄</div>
+                    <h2>F2L (First Two Layers)</h2>
+                    <p class="card-info">41 algoritmos disponíveis</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="f2lProgress" style="width: 0%"></div>
+                    </div>
+                    <p class="card-info" id="f2lProgressText">0/41 concluídos</p>
+                    <button class="button button-primary" onclick="startPractice('F2L', false)">Treinar Todos</button>
+                    <button class="button button-secondary" onclick="showSelection('F2L')">Selecionar para Revisão</button>
+                    <button class="button button-danger" onclick="showResetModal('F2L')" style="margin-top: 1rem;">🗑️ Resetar F2L</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">⬆️</div>
+                    <h2>OLL (Orientation of Last Layer)</h2>
+                    <p class="card-info">57 algoritmos disponíveis</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="ollProgress" style="width: 0%"></div>
+                    </div>
+                    <p class="card-info" id="ollProgressText">0/57 concluídos</p>
+                    <button class="button button-primary" onclick="startPractice('OLL', false)">Treinar Todos</button>
+                    <button class="button button-secondary" onclick="showSelection('OLL')">Selecionar para Revisão</button>
+                    <button class="button button-danger" onclick="showResetModal('OLL')" style="margin-top: 1rem;">🗑️ Resetar OLL</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">↩️</div>
+                    <h2>PLL (Permutation of Last Layer)</h2>
+                    <p class="card-info">21 algoritmos disponíveis</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="pllProgress" style="width: 0%"></div>
+                    </div>
+                    <p class="card-info" id="pllProgressText">0/21 concluídos</p>
+                    <button class="button button-primary" onclick="startPractice('PLL', false)">Treinar Todos</button>
+                    <button class="button button-secondary" onclick="showSelection('PLL')">Selecionar para Revisão</button>
+                    <button class="button button-danger" onclick="showResetModal('PLL')" style="margin-top: 1rem;">🗑️ Resetar PLL</button>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="button button-danger" onclick="showResetModal('ALL')" style="width: auto; padding: 1rem 2rem;">
+                    ⚠️ Resetar Todos os Dados
+                </button>
+            </div>
+        </div>
+
+        <!-- Practice Screen -->
+        <div id="practiceScreen" class="screen">
+            <button class="back-button" onclick="goHome()">← Voltar</button>
+            <h2 id="practiceTitle" style="margin: 1rem 0">Treino de F2L</h2>
+            <p id="practiceCounter" style="text-align: center; color: #6b7280">Algoritmo 1 de 1</p>
+            <p id="sessionTimer" style="text-align: center; color: #6b7280; display: none;">Tempo: 00:00</p>
+            
+            <div style="text-align: center; margin: 1rem 0">
+                <span id="algorithmStatus" class="status-badge status-new">Novo</span>
+            </div>
+
+            <div style="text-align: center;">
+                <p class="algorithm-label">Algoritmo para executar:</p>
+                <div class="algorithm-display" id="algorithmDisplay">
+                    Clique em "Sortear Próximo" para começar
+                </div>
+            </div>
+
+            <div class="solution-area" id="solutionArea">
+                <h3 style="margin-bottom: 0.5rem">Setup:</h3>
+                <div id="solutionText" style="font-family: monospace; font-size: 1.25rem"></div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="button button-primary" onclick="nextAlgorithm()">Sortear Próximo</button>
+                <button class="button button-secondary" onclick="toggleSolution()">Mostrar/Ocultar Setup</button>
+                <button class="button button-secondary" onclick="markAsMastered()">Marcar como Dominado</button>
+            </div>
+            
+            <p class="tip-text" style="text-align: center; font-size: 0.875rem; margin-top: 1rem;">
+                💡 Dica: Execute o algoritmo mostrado para resolver o caso. Clique em "Mostrar Setup" para ver como montar o caso.
+            </p>
+
+            <div class="progress-bar" style="margin-top: 2rem">
+                <div class="progress-fill" id="sessionProgress" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Selection Screen -->
+        <div id="selectionScreen" class="screen">
+            <button class="back-button" onclick="goHome()">← Voltar</button>
+            <h2 id="selectionTitle" style="margin: 1rem 0">Selecionar Algoritmos para Revisão</h2>
+            
+            <div class="filter-buttons">
+                <button class="filter-button" onclick="selectAll()">Selecionar Todos</button>
+                <button class="filter-button" onclick="selectNone()">Limpar Seleção</button>
+                <button class="filter-button" onclick="selectNotMastered()">Apenas Não Dominados</button>
+                <button class="filter-button" onclick="selectMastered()">Apenas Dominados</button>
+                <button class="filter-button multi-select" onclick="selectMultiple(5)">+5</button>
+                <button class="filter-button multi-select" onclick="selectMultiple(10)">+10</button>
+                <button class="filter-button multi-select" onclick="selectMultiple(20)">+20</button>
+            </div>
+
+            <p class="selected-count" id="selectedCount">0 algoritmos selecionados</p>
+
+            <div class="checkbox-list" id="algorithmList"></div>
+
+            <button class="button button-primary" id="startReviewBtn" onclick="startReview()" disabled>Selecione algoritmos para revisar</button>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settingsScreen" class="screen">
+            <button class="back-button" onclick="goHome()">← Voltar</button>
+            <h2 style="margin: 1rem 0">Configurações</h2>
+
+            <div class="card" style="margin-top: 2rem">
+                <h3>Personalização Visual</h3>
+                <div class="toggle-switch">
+                    <span>Modo Escuro</span>
+                    <div class="switch" id="darkModeSwitch" onclick="toggleDarkMode()">
+                        <div class="switch-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-switch">
+                    <span>Animações</span>
+                    <div class="switch active" id="animationsSwitch" onclick="toggleAnimations()">
+                        <div class="switch-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-switch">
+                    <span>Sons de Feedback</span>
+                    <div class="switch" id="soundsSwitch" onclick="toggleSounds()">
+                        <div class="switch-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 1rem">
+                <h3>Configurações de Treino</h3>
+                <div class="toggle-switch">
+                    <span>Mostrar Timer de Sessão</span>
+                    <div class="switch" id="timerSwitch" onclick="toggleTimer()">
+                        <div class="switch-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-switch">
+                    <span>Auto-mostrar Solução (3s)</span>
+                    <div class="switch" id="autoSolutionSwitch" onclick="toggleAutoSolution()">
+                        <div class="switch-slider"></div>
+                    </div>
+                </div>
+                <div class="toggle-switch">
+                    <span>Incluir Algoritmos Dominados</span>
+                    <div class="switch active" id="includeMasteredSwitch" onclick="toggleIncludeMastered()">
+                        <div class="switch-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 1rem">
+                <h3>Exportar/Importar Dados</h3>
+                <button class="button button-secondary" onclick="exportData()">📥 Exportar Progresso</button>
+                <button class="button button-secondary" onclick="importData()">📤 Importar Progresso</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="handleImport(event)">
+            </div>
+
+            <div class="card" style="margin-top: 1rem">
+                <h3>Sobre o Sistema</h3>
+                <p class="info-text" style="line-height: 1.8;">
+                    <strong>Algoritmo:</strong> É o que você deve executar para resolver o caso<br>
+                    <strong>Setup:</strong> É como criar/montar o caso para treinar<br><br>
+                    O sistema sorteia o algoritmo de solução e ao clicar em "Mostrar Setup" você vê como montar esse caso específico.
+                </p>
+            </div>
+
+            <div class="card" style="margin-top: 1rem">
+                <h3>Estatísticas</h3>
+                <p id="statsText" style="line-height: 1.8"></p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Completion Modal -->
+    <div id="completionModal" class="modal">
+        <div class="modal-content">
+            <h3>Todos os algoritmos já foram sorteados!</h3>
+            <p>Você praticou todos os algoritmos disponíveis nesta sessão.</p>
+            <div class="modal-buttons">
+                <button class="button button-primary" onclick="restartSession()">✅ Sim, Recomeçar</button>
+                <button class="button button-secondary" onclick="closeModal()">❌ Não, Voltar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="resetModal" class="modal">
+        <div class="modal-content">
+            <h3 id="resetModalTitle">Confirmar Reset</h3>
+            <p id="resetModalText">Tem certeza que deseja resetar?</p>
+            <div class="modal-buttons">
+                <button class="button button-danger" onclick="confirmReset()">Sim, Resetar</button>
+                <button class="button button-secondary" onclick="closeResetModal()">Não, Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Algorithm Data
+        // IMPORTANTE: 
+        // - "case" = Algoritmo que o usuário deve executar (o que é sorteado)
+        // - "solution" = Setup do caso (mostrado quando clica em "Mostrar Setup")
+        const algorithmData = {
+            F2L: [
+                { id: "f2l_001", case: "R U' R'", solution: "R U R'" },
+                { id: "f2l_002", case: "L' U L", solution: "L' U' L" },
+                { id: "f2l_003", case: "R U R' U'", solution: "U R U' R'" },
+                { id: "f2l_004", case: "L' U' L U", solution: "U' L' U L" },
+                { id: "f2l_005", case: "F' U' F U R U R' U'", solution: "U R U' R' U' F' U F" },
+                { id: "f2l_006", case: "F U F' U' L' U' L U", solution: "U' L' U L U F U' F'" },
+                { id: "f2l_007", case: "L' U' L U L' U' L", solution: "L' U L U' L' U L" },
+                { id: "f2l_008", case: "R U' R' U R U' R'", solution: "R U R' U' R U R'" },
+                { id: "f2l_009", case: "R U R' U' R U R'", solution: "R U' R' U R U' R'" },
+                { id: "f2l_010", case: "L' U L U' L' U L", solution: "L' U' L U L' U' L" },
+                { id: "f2l_011", case: "R U' R' U R U' R' U R U' R'", solution: "R U R' U' R U R' U' R U R'" },
+                { id: "f2l_012", case: "L' U2 L y' R U R'", solution: "R U' R' y L' U2 L" },
+                { id: "f2l_013", case: "R U' R' U2 R U' R' U'", solution: "U R U R' U2 R U R'" },
+                { id: "f2l_014", case: "R U' R' U F' U F U'", solution: "U F' U' F U' R U R'" },
+                { id: "f2l_015", case: "R U R' U2 R U R' U", solution: "U' R U' R' U2 R U' R'" },
+                { id: "f2l_016", case: "R' U R Dw' R U' R' U", solution: "U' R U R' Dw R' U' R" },
+                { id: "f2l_017", case: "R' U R Dw' U' R U R'", solution: "R U' R' U Dw R' U' R" },
+                { id: "f2l_018", case: "R' U' R U2 R' U2 R Dw'", solution: "Dw R' U2 R U2 R' U R" },
+                { id: "f2l_019", case: "R' U' R U2 R' U R Dw'", solution: "Dw R' U' R U2 R' U R" },
+                { id: "f2l_020", case: "R U' R' U' R U R' U", solution: "U' R U' R' U R U R'" },
+                { id: "f2l_021", case: "R U' R' U' R U' R' U", solution: "U' R U R' U R U R'" },
+                { id: "f2l_022", case: "R U' R' Dw R' U2 R Dw'", solution: "Dw R' U2 R Dw' R U R'" },
+                { id: "f2l_023", case: "R U R' U' R U R' U2 R U' R'", solution: "R U R' U2 R U' R' U R U' R'" },
+                { id: "f2l_024", case: "R U R' U2 R U2 R' U", solution: "U' R U2 R' U2 R U' R'" },
+                { id: "f2l_025", case: "R U R' U2 R U' R' U", solution: "U' R U R' U2 R U' R'" },
+                { id: "f2l_026", case: "R' U R U R' U' R Dw'", solution: "Dw R' U R U' R' U' R" },
+                { id: "f2l_027", case: "F' U F U' R U R' U", solution: "U' R U' R' U F' U' F" },
+                { id: "f2l_028", case: "F' U F U' R U2 R' U", solution: "U' R U2 R' U F' U' F" },
+                { id: "f2l_029", case: "R U' R' U R U' R' U2 R U' R'", solution: "R U R' U2 R U R' U' R U R'" },
+                { id: "f2l_030", case: "R U R' U' R U' R' U2", solution: "U2 R U R' U R U' R'" },
+                { id: "f2l_031", case: "R U R' U' R U2 R' U'", solution: "U R U2 R' U R U' R'" },
+                { id: "f2l_032", case: "R U' R' U R U2 R'", solution: "R U2 R' U' R U R'" },
+                { id: "f2l_033", case: "R U R' F R U R' U' F'", solution: "F U R U' R' F' R U' R'" },
+                { id: "f2l_034", case: "F' L' U2 L F", solution: "F' L' U2 L F" },
+                { id: "f2l_035", case: "L' U' L U L' U2 L U y'", solution: "y U' L' U2 L U' L' U L" },
+                { id: "f2l_036", case: "L' U L U' L' U2 L y'", solution: "y L' U2 L U L' U' L" },
+                { id: "f2l_037", case: "R' U2 R U' R' U2 R Dw' R U R'", solution: "R U' R' Dw R' U2 R U R' U2 R" },
+                { id: "f2l_038", case: "R U' R' U' R U R' U2 R U' R'", solution: "R U R' U2 R U' R' U R U R'" },
+                { id: "f2l_039", case: "R U' R' U R U2 R' U R U' R'", solution: "R U R' U' R U2 R' U' R U R'" },
+                { id: "f2l_040", case: "F' U F U2 R U R' U R U' R'", solution: "R U R' U' R U' R' U2 F' U' F" },
+                { id: "f2l_041", case: "R' U R U R' U R Dw' R U R'", solution: "R U' R' Dw R' U' R U' R' U' R" }
+            ],
+            OLL: [
+                { id: "oll_001", case: "R U2 R' U' R U' R'", solution: "R U R' U R U2 R'" },
+                { id: "oll_002", case: "R' U2 R U R' U R", solution: "R' U' R U' R' U2 R" },
+                { id: "oll_003", case: "R U2 R' U' R U R' U' R U' R'", solution: "R U R' U R U' R' U R U2 R'" },
+                { id: "oll_004", case: "R' U2 R2 U R2 U R2 U2 R'", solution: "R U2 R2 U' R2 U' R2 U2 R" },
+                { id: "oll_005", case: "F R' F' Rw U R U' Rw'", solution: "Rw U R' U' Rw' F R F'" },
+                { id: "oll_006", case: "R' U2 R' D' R U2 R' D R2", solution: "R2 D' R U2 R' D R U2 R" },
+                { id: "oll_007", case: "F' L' F R' F' L F R", solution: "R' F' L' F R F' L F" },
+                { id: "oll_008", case: "F U R U' R' F'", solution: "F R U R' U' F'" },
+                { id: "oll_009", case: "F R' F' R U R U' R'", solution: "R U R' U' R' F R F'" },
+                { id: "oll_010", case: "F R U R' U' F'", solution: "F U R U' R' F'" },
+                { id: "oll_011", case: "R' F' U' F U R", solution: "R' U' F' U F R" },
+                { id: "oll_012", case: "Fw R' F' R U R U' R' S'", solution: "S R U R' U' R' F R Fw'" },
+                { id: "oll_013", case: "R' F R U R' U' F' U R", solution: "R' U' F U R U' R' F' R" },
+                { id: "oll_014", case: "F U R U' R' U R U' R' F'", solution: "F R U R' U' R U R' U' F'" },
+                { id: "oll_015", case: "R' U' F R' F' R F R' F' R U R", solution: "R' U' R' F R F' R' F R F' U R" },
+                { id: "oll_016", case: "Lw' U2 L U L' U' L U L' U Lw", solution: "Lw' U' L U' L' U L U' L' U2 Lw" },
+                { id: "oll_017", case: "Rw U2 R' U' R U R' U' R U' Rw'", solution: "Rw U R' U R U' R' U R U2 Rw'" },
+                { id: "oll_018", case: "R B' R2 F R2 B R2 F' R", solution: "R' F R2 B' R2 F' R2 B R'" },
+                { id: "oll_019", case: "Rw' U Rw2 U' Rw2 U' Rw2 U Rw'", solution: "Rw U' Rw2 U Rw2 U Rw2 U' Rw" },
+                { id: "oll_020", case: "R U R' U' R' F R F'", solution: "F R' F' R U R U' R'" },
+                { id: "oll_021", case: "R U2 R' F R' F' R2 U2 R'", solution: "R U2 R2 F R F' R U2 R'" },
+                { id: "oll_022", case: "Lw' U' L U' L' U2 Lw", solution: "Lw' U2 L U L' U Lw" },
+                { id: "oll_023", case: "Rw U R' U R U2 Rw'", solution: "Rw U2 R' U' R U' Rw'" },
+                { id: "oll_024", case: "Rw U2 R' U' R U' Rw'", solution: "Rw U R' U R U2 Rw'" },
+                { id: "oll_025", case: "Lw' U2 L U L' U Lw", solution: "Lw' U' L U' L' U2 Lw" },
+                { id: "oll_026", case: "M U' R U2 R' U' R U' R' M'", solution: "M R U R' U R U2 R' U M'" },
+                { id: "oll_027", case: "M' U R' U2 R U R' U R M", solution: "M' R' U' R U' R' U2 R U' M" },
+                { id: "oll_028", case: "Rw U R' U' Rw' R U R U' R'", solution: "R U R' U' Rw R' U R U' Rw'" },
+                { id: "oll_029", case: "R U R' U' Rw R' U R U' Rw'", solution: "Rw U R' U' Rw' R U R U' R'" },
+                { id: "oll_030", case: "F R U R' U' R U R' U' F'", solution: "F U R U' R' U R U' R' F'" },
+                { id: "oll_031", case: "R2 U' R' U R U R' R U' R' U' R U R2 F R2 U R' U' R' F' R", solution: "R' F R U R U' R2 F'" },
+                { id: "oll_032", case: "R' U' R U' R' U F' U F R", solution: "R' F' U' F U' R U R' U R" },
+                { id: "oll_033", case: "Rw U Rw' R U R' U' R U R' U' Rw U' Rw'", solution: "Rw U Rw' U R U' R' U R U' R' Rw U' Rw'" },
+                { id: "oll_034", case: "R' U' F R' F' R U R", solution: "R' U' R' F R F' U R" },
+                { id: "oll_035", case: "F U R' U' R' F' R U R2 U' R'", solution: "R U R2 U' R' F R U R U' F'" },
+                { id: "oll_036", case: "F R' F' R U R U R' U' R U' R'", solution: "R U R' U R U' R' U' R' F R F'" },
+                { id: "oll_037", case: "F' L F L' U' L' U' L U L' U L", solution: "L' U' L U' L' U L U L F' L' F" },
+                { id: "oll_038", case: "L F' L' U' L U F U' L'", solution: "L F' L' U' L U F U' L'" },
+                { id: "oll_039", case: "R' U' F U R U' R' F' R", solution: "R' F R U R' U' F' U R" },
+                { id: "oll_040", case: "F U F' R' F R U' R' F' R", solution: "R' F R U R' F' R F U' F'" },
+                { id: "oll_041", case: "F' U' F Rw U' Rw' U Rw U Rw'", solution: "Rw U' Rw' U' Rw U Rw' F' U F F' U' F Rw U' Rw' U Rw U Rw'" },
+                { id: "oll_042", case: "Rw U Rw' U R U' M' U' Rw'", solution: "Rw U M U R' U' Rw U' Rw'" },
+                { id: "oll_043", case: "Lw' U' Lw U' L' U M' U Lw", solution: "Lw' U' M U' L U Lw' U Lw" },
+                { id: "oll_044", case: "R U' R' F' U F R U R' U R U' R'", solution: "R U R' U' R U' R' F' U' F R U R'" },
+                { id: "oll_045", case: "F U R U2 R' U R U2 R' U' F'", solution: "F U R U2 R' U' R U2 R' U' F'" },
+                { id: "oll_046", case: "F U R U' R' F' R U2 R' U' R U' R'", solution: "R U R' U R U2 R' F R U R' U' F'" },
+                { id: "oll_047", case: "F U R U' R' F' R' U2 R U R' U R", solution: "R' U' R U' R' U2 R F R U R' U' F'" },
+                { id: "oll_048", case: "F U R U' R2 F' R U R U' R'", solution: "R U R' U' R' F R2 U R' U' F'" },
+                { id: "oll_049", case: "R U2 R' F R' F' R U' R U' R'", solution: "R U R' U R' F R F' R U2 R'" },
+                { id: "oll_050", case: "Rw U R' U' M2 U R U' R' U' M' Rw", solution: "Rw U R' U' M2 U R U' R' U' M' Rw" },
+                { id: "oll_051", case: "Rw' R U R U R' U' Rw R2 F R F' F R' F' R2 Rw' U R U' R' U' R' Rw", solution: "Rw' R U R U R' U' Rw R2 F R F' F R' F' R2 Rw' U R U' R' U' R' Rw" },
+                { id: "oll_052", case: "Rw' U2 R U R' U Rw2 U2 R' U' R U' Rw'", solution: "Rw U R' U R U2 Rw2 U' R U' R' U2 Rw" },
+                { id: "oll_053", case: "F R' F' R U2 F R' F' R U' R U' R'", solution: "R U R' U R' F R F' U2 R' F R F'" },
+                { id: "oll_054", case: "F U R U' R' F' U Fw U R U' R' Fw'", solution: "Fw R U R' U' Fw' U' F R U R' U' F'" },
+                { id: "oll_055", case: "F U R U' R' F' U' Fw U R U' R' Fw'", solution: "Fw R U R' U' Fw' U F R U R' U' F'" },
+                { id: "oll_056", case: "R U' R2 D' Rw U' Rw' D R2 U R'", solution: "R U' R2 D' Rw U Rw' D R2 U R'" },
+                { id: "oll_057", case: "F R' F' R U2 F R' F' R2 U2 R'", solution: "R U2 R2 F R F' U2 R' F R F'" }
+            ],
+            PLL: [
+                { id: "pll_ua", case: "R2 U' R' U' R U R U R U' R", solution: "R' U R' U' R' U' R' U R U R2" },
+                { id: "pll_ub", case: "R' U R' U' R' U' R' U R U R2", solution: "R2 U' R' U' R U R U R U' R" },
+                { id: "pll_h", case: "M2 U M2 U2 M2 U M2", solution: "M2 U M2 U2 M2 U M2" },
+                { id: "pll_z", case: "M2 U M2 U M' U2 M2 U2 M' U2", solution: "M2 U M2 U M' U2 M2 U2 M' U2" },
+                { id: "pll_aa", case: "x R' U R' D2 R U' R' D2 R2", solution: "x R2 D2 R U R' D2 R U' R" },
+                { id: "pll_ab", case: "x R2 D2 R U R' D2 R U' R", solution: "x R' U R' D2 R U' R' D2 R2" },
+                { id: "pll_t", case: "R U R' U' R' F R2 U' R' U' R U R' F'", solution: "R U R' U' R' F R2 U' R' U' R U R' F'" },
+                { id: "pll_f", case: "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R", solution: "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R" },
+                { id: "pll_y", case: "F R U' R' U' R U R' F' R U R' U' R' F R F'", solution: "F R U' R' U' R U R' F' R U R' U' R' F R F'" },
+                { id: "pll_e", case: "x' R U' R' D R U R' D' R U R' D R U' R' D'", solution: "x' R U' R' D R U R' D' R U R' D R U' R' D'" },
+                { id: "pll_ja", case: "R U R' F' R U R' U' R' F R2 U' R' U'", solution: "R U R' F' R U R' U' R' F R2 U' R' U'" },
+                { id: "pll_jb", case: "x R2 F R F' R U2 Rw' U Rw U2 x'", solution: "x R2 F R F' R U2 Rw' U Rw U2 x'" },
+                { id: "pll_ra", case: "R' U2 R U2 R' F R U R' U' R' F' R2 U'", solution: "R' U2 R U2 R' F R U R' U' R' F' R2 U'" },
+                { id: "pll_rb", case: "R U' R' U' R U R D R' U' R D' R' U2 R'", solution: "R U' R' U' R U R D R' U' R D' R' U2 R'" },
+                { id: "pll_na", case: "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'", solution: "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'" },
+                { id: "pll_nb", case: "R' U R U' R' F' U' F R U R' F R' F' R U' R", solution: "R' U R U' R' F' U' F R U R' F R' F' R U' R" },
+                { id: "pll_v", case: "R' U R' U' y R' F' R2 U' R' U R' F R F", solution: "R' U R' U' y R' F' R2 U' R' U R' F R F" },
+                { id: "pll_ga", case: "D R' U' R D' U R2 U R' U R U' R U' R2", solution: "R2 U R' U R' U' R U' R2 U' D R' U R D'" },
+                { id: "pll_gb", case: "D' R2 U R' U R U' R U' R2 D", solution: "R' U' R U D' R2 U R' U R U' R U' R2 D" },
+                { id: "pll_gc", case: "D' R U R' D U' R2 U' R U' R' U R' U R2", solution: "R2 U' R U' R U R' U R2 U D' R U' R' D" },
+                { id: "pll_gd", case: "D R2 U' R U' R U R' U R2 D' U R U' R'", solution: "R U R' U' D R2 U' R U' R' U R' D' R2 U' R U' R U R' U R2 D' U R U' R'" }
+            ]
+        };
+
+        // App State
+        let currentCategory = '';
+        let currentAlgorithms = [];
+        let usedAlgorithms = [];
+        let currentAlgorithm = null;
+        let selectedAlgorithms = [];
+        let isReviewMode = false;
+        let resetTarget = '';
+        let sessionStartTime = null;
+        let autoSolutionTimeout = null;
+
+        // Load saved data
+        function loadData() {
+            const saved = localStorage.getItem('cubeTrainerData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                // Ensure statistics object exists
+                if (!data.statistics) {
+                    data.statistics = {
+                        totalSessions: 0,
+                        totalAlgorithmsPracticed: 0
+                    };
+                }
+                // Ensure all settings exist
+                if (!data.settings) {
+                    data.settings = {};
+                }
+                data.settings = {
+                    theme: data.settings.theme || 'light',
+                    animations: data.settings.animations !== false,
+                    sounds: data.settings.sounds || false,
+                    showTimer: data.settings.showTimer || false,
+                    autoSolution: data.settings.autoSolution || false,
+                    includeMastered: data.settings.includeMastered !== false
+                };
+                return data;
+            }
+            return {
+                progress: {
+                    F2L: { completed: [], mastered: [], selectedForReview: [] },
+                    OLL: { completed: [], mastered: [], selectedForReview: [] },
+                    PLL: { completed: [], mastered: [], selectedForReview: [] }
+                },
+                settings: {
+                    theme: 'light',
+                    animations: true,
+                    sounds: false,
+                    showTimer: false,
+                    autoSolution: false,
+                    includeMastered: true
+                },
+                statistics: {
+                    totalSessions: 0,
+                    totalAlgorithmsPracticed: 0
+                }
+            };
+        }
+
+        // Save data
+        function saveData(data) {
+            localStorage.setItem('cubeTrainerData', JSON.stringify(data));
+        }
+
+        // Initialize app
+        function init() {
+            const data = loadData();
+            updateHomeScreen();
+            
+            // Load settings
+            if (data.settings.theme === 'dark') {
+                document.body.classList.add('dark');
+                document.getElementById('darkModeSwitch').classList.add('active');
+            }
+            
+            if (data.settings.animations !== false) {
+                document.getElementById('animationsSwitch').classList.add('active');
+            } else {
+                document.body.classList.add('no-animations');
+            }
+            
+            if (data.settings.sounds) {
+                document.getElementById('soundsSwitch').classList.add('active');
+            }
+            
+            if (data.settings.showTimer) {
+                document.getElementById('timerSwitch').classList.add('active');
+            }
+            
+            if (data.settings.autoSolution) {
+                document.getElementById('autoSolutionSwitch').classList.add('active');
+            }
+            
+            if (data.settings.includeMastered !== false) {
+                document.getElementById('includeMasteredSwitch').classList.add('active');
+            }
+        }
+
+        // Update home screen progress
+        function updateHomeScreen() {
+            const data = loadData();
+            
+            ['F2L', 'OLL', 'PLL'].forEach(category => {
+                const total = algorithmData[category].length;
+                const completed = data.progress[category].completed.length;
+                const percentage = (completed / total) * 100;
+                
+                document.getElementById(`${category.toLowerCase()}Progress`).style.width = percentage + '%';
+                document.getElementById(`${category.toLowerCase()}ProgressText`).textContent = `${completed}/${total} concluídos`;
+            });
+        }
+
+        // Show screen
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId + 'Screen').classList.add('active');
+            
+            if (screenId === 'settings') {
+                updateStats();
+            }
+        }
+
+        // Go home
+        function goHome() {
+            stopSessionTimer();
+            showScreen('home');
+            updateHomeScreen();
+            document.getElementById('headerTitle').textContent = 'Treinador de Algoritmos - Cubo Mágico';
+        }
+
+        // Timer functions
+        let timerInterval = null;
+        
+        function startSessionTimer() {
+            const data = loadData();
+            if (!data.settings.showTimer) return;
+            
+            sessionStartTime = Date.now();
+            document.getElementById('sessionTimer').style.display = 'block';
+            
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                document.getElementById('sessionTimer').textContent = 
+                    `Tempo: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        function stopSessionTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            document.getElementById('sessionTimer').style.display = 'none';
+        }
+
+        // Start practice
+        function startPractice(category, reviewMode) {
+            currentCategory = category;
+            isReviewMode = reviewMode;
+            usedAlgorithms = [];
+            currentAlgorithm = null;
+            
+            if (reviewMode) {
+                const data = loadData();
+                const selected = data.progress[category].selectedForReview || [];
+                currentAlgorithms = algorithmData[category].filter(alg => selected.includes(alg.id));
+                document.getElementById('headerTitle').textContent = `Revisão Personalizada - ${category}`;
+                document.getElementById('practiceTitle').textContent = `Revisão Personalizada - ${category}`;
+            } else {
+                currentAlgorithms = [...algorithmData[category]];
+                document.getElementById('headerTitle').textContent = `Treino de ${category}`;
+                document.getElementById('practiceTitle').textContent = `Treino de ${category}`;
+            }
+            
+            if (currentAlgorithms.length === 0) {
+                alert('Nenhum algoritmo selecionado para revisão!');
+                return;
+            }
+            
+            showScreen('practice');
+            document.getElementById('algorithmDisplay').textContent = 'Clique em "Sortear Próximo" para começar';
+            document.getElementById('solutionArea').classList.remove('visible');
+            updateSessionProgress();
+            
+            // Start timer
+            startSessionTimer();
+            
+            // Update stats
+            const data = loadData();
+            if (!data.statistics) {
+                data.statistics = { totalSessions: 0, totalAlgorithmsPracticed: 0 };
+            }
+            data.statistics.totalSessions = (data.statistics.totalSessions || 0) + 1;
+            saveData(data);
+        }
+
+        // Next algorithm
+        function nextAlgorithm() {
+            if (usedAlgorithms.length === currentAlgorithms.length) {
+                // Add session time to modal if timer is active
+                const data = loadData();
+                if (data.settings.showTimer && sessionStartTime && timerInterval) {
+                    const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+                    const minutes = Math.floor(elapsed / 60);
+                    const seconds = elapsed % 60;
+                    const modalText = document.querySelector('#completionModal p');
+                    modalText.innerHTML = `Você praticou todos os algoritmos disponíveis nesta sessão.<br><br>⏱️ Tempo total: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                } else {
+                    const modalText = document.querySelector('#completionModal p');
+                    modalText.innerHTML = 'Você praticou todos os algoritmos disponíveis nesta sessão.';
+                }
+                playSound('success');
+                document.getElementById('completionModal').classList.add('active');
+                return;
+            }
+            
+            // Clear auto solution timeout
+            if (autoSolutionTimeout) {
+                clearTimeout(autoSolutionTimeout);
+                autoSolutionTimeout = null;
+            }
+            
+            // Get unused algorithms
+            const unused = currentAlgorithms.filter(alg => !usedAlgorithms.includes(alg.id));
+            
+            // Apply filter for mastered algorithms if setting is off
+            const data = loadData();
+            let available = unused;
+            if (!data.settings.includeMastered) {
+                const nonMastered = unused.filter(alg => !data.progress[currentCategory].mastered.includes(alg.id));
+                if (nonMastered.length > 0) {
+                    available = nonMastered;
+                }
+            }
+            
+            // Random selection
+            const randomIndex = Math.floor(Math.random() * available.length);
+            currentAlgorithm = available[randomIndex];
+            usedAlgorithms.push(currentAlgorithm.id);
+            
+            // Update display
+            document.getElementById('algorithmDisplay').textContent = currentAlgorithm.case;
+            document.getElementById('solutionText').textContent = currentAlgorithm.solution;
+            document.getElementById('solutionArea').classList.remove('visible');
+            
+            // Auto show solution if enabled
+            if (data.settings.autoSolution) {
+                autoSolutionTimeout = setTimeout(() => {
+                    document.getElementById('solutionArea').classList.add('visible');
+                }, 3000);
+            }
+            
+            // Update counter
+            document.getElementById('practiceCounter').textContent = 
+                `Algoritmo ${usedAlgorithms.length} de ${currentAlgorithms.length}`;
+            
+            // Update status
+            const isMastered = data.progress[currentCategory].mastered.includes(currentAlgorithm.id);
+            const isCompleted = data.progress[currentCategory].completed.includes(currentAlgorithm.id);
+            
+            const statusElement = document.getElementById('algorithmStatus');
+            if (isMastered) {
+                statusElement.className = 'status-badge status-mastered';
+                statusElement.textContent = 'Dominado';
+            } else if (isCompleted) {
+                statusElement.className = 'status-badge status-reviewing';
+                statusElement.textContent = 'Revisando';
+            } else {
+                statusElement.className = 'status-badge status-new';
+                statusElement.textContent = 'Novo';
+            }
+            
+            updateSessionProgress();
+            
+            // Mark as completed
+            if (!isCompleted) {
+                data.progress[currentCategory].completed.push(currentAlgorithm.id);
+                if (!data.statistics) {
+                    data.statistics = { totalSessions: 0, totalAlgorithmsPracticed: 0 };
+                }
+                data.statistics.totalAlgorithmsPracticed = (data.statistics.totalAlgorithmsPracticed || 0) + 1;
+                saveData(data);
+            }
+            
+            // Play sound
+            playSound('next');
+        }
+
+        // Toggle solution
+        function toggleSolution() {
+            if (!currentAlgorithm) return;
+            document.getElementById('solutionArea').classList.toggle('visible');
+        }
+
+        // Sound effect
+        function playSound(type) {
+            const data = loadData();
+            if (!data.settings.sounds) return;
+            
+            try {
+                // Create a simple beep sound
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = type === 'success' ? 800 : type === 'next' ? 600 : 400;
+                gainNode.gain.setValueAtTime(type === 'success' ? 0.15 : 0.08, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + (type === 'success' ? 0.2 : 0.1));
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + (type === 'success' ? 0.2 : 0.1));
+            } catch (e) {
+                // Audio not supported
+                console.log('Audio not supported');
+            }
+        }
+
+        // Mark as mastered
+        function markAsMastered() {
+            if (!currentAlgorithm) return;
+            
+            const data = loadData();
+            if (!data.progress[currentCategory].mastered.includes(currentAlgorithm.id)) {
+                data.progress[currentCategory].mastered.push(currentAlgorithm.id);
+                saveData(data);
+                
+                const statusElement = document.getElementById('algorithmStatus');
+                statusElement.className = 'status-badge status-mastered';
+                statusElement.textContent = 'Dominado';
+                
+                playSound('success');
+            }
+        }
+
+        // Update session progress
+        function updateSessionProgress() {
+            const percentage = (usedAlgorithms.length / currentAlgorithms.length) * 100;
+            document.getElementById('sessionProgress').style.width = percentage + '%';
+        }
+
+        // Show selection screen
+        function showSelection(category) {
+            currentCategory = category;
+            document.getElementById('selectionTitle').textContent = `Selecionar Algoritmos ${category} para Revisão`;
+            showScreen('selection');
+            renderAlgorithmList();
+        }
+
+        // Render algorithm list
+        function renderAlgorithmList() {
+            const data = loadData();
+            const selected = data.progress[currentCategory].selectedForReview || [];
+            const mastered = data.progress[currentCategory].mastered || [];
+            const completed = data.progress[currentCategory].completed || [];
+            
+            const listContainer = document.getElementById('algorithmList');
+            listContainer.innerHTML = '';
+            
+            algorithmData[currentCategory].forEach((alg, index) => {
+                const item = document.createElement('div');
+                item.className = 'checkbox-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = alg.id;
+                checkbox.checked = selected.includes(alg.id);
+                checkbox.onchange = updateSelectedCount;
+                
+                const content = document.createElement('div');
+                content.className = 'checkbox-content';
+                
+                const label = document.createElement('div');
+                label.className = 'checkbox-label';
+                label.textContent = `Caso ${index + 1}`;
+                
+                if (mastered.includes(alg.id)) {
+                    label.textContent += ' (Dominado)';
+                } else if (completed.includes(alg.id)) {
+                    label.textContent += ' (Revisando)';
+                } else {
+                    label.textContent += ' (Novo)';
+                }
+                
+                const algorithm = document.createElement('div');
+                algorithm.className = 'checkbox-algorithm';
+                algorithm.textContent = alg.case;
+                
+                content.appendChild(label);
+                content.appendChild(algorithm);
+                
+                item.appendChild(checkbox);
+                item.appendChild(content);
+                
+                listContainer.appendChild(item);
+            });
+            
+            updateSelectedCount();
+        }
+
+        // Update selected count
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('#algorithmList input[type="checkbox"]:checked');
+            const count = checkboxes.length;
+            document.getElementById('selectedCount').textContent = `${count} algoritmos selecionados`;
+            
+            const btn = document.getElementById('startReviewBtn');
+            if (count > 0) {
+                btn.textContent = `Iniciar Revisão com ${count} Algoritmos`;
+                btn.disabled = false;
+            } else {
+                btn.textContent = 'Selecione algoritmos para revisar';
+                btn.disabled = true;
+            }
+        }
+
+        // Filter functions
+        function selectAll() {
+            document.querySelectorAll('#algorithmList input[type="checkbox"]').forEach(cb => {
+                cb.checked = true;
+            });
+            updateSelectedCount();
+        }
+
+        function selectNone() {
+            document.querySelectorAll('#algorithmList input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            updateSelectedCount();
+        }
+
+        function selectNotMastered() {
+            const data = loadData();
+            const mastered = data.progress[currentCategory].mastered || [];
+            
+            document.querySelectorAll('#algorithmList input[type="checkbox"]').forEach(cb => {
+                cb.checked = !mastered.includes(cb.id);
+            });
+            updateSelectedCount();
+        }
+
+        function selectMastered() {
+            const data = loadData();
+            const mastered = data.progress[currentCategory].mastered || [];
+            
+            document.querySelectorAll('#algorithmList input[type="checkbox"]').forEach(cb => {
+                cb.checked = mastered.includes(cb.id);
+            });
+            updateSelectedCount();
+        }
+
+        // Select multiple algorithms
+        function selectMultiple(count) {
+            const checkboxes = document.querySelectorAll('#algorithmList input[type="checkbox"]');
+            let selected = 0;
+            
+            // First pass: count how many we need to select
+            for (let i = 0; i < checkboxes.length && selected < count; i++) {
+                if (!checkboxes[i].checked) {
+                    checkboxes[i].checked = true;
+                    selected++;
+                }
+            }
+            
+            updateSelectedCount();
+            
+            // Show message if we selected less than requested
+            if (selected < count) {
+                const remaining = count - selected;
+                if (selected === 0) {
+                    alert('Todos os algoritmos já estão selecionados!');
+                } else {
+                    alert(`Apenas ${selected} algoritmos foram selecionados (todos os restantes).`);
+                }
+            }
+        }
+
+        // Start review
+        function startReview() {
+            const selected = [];
+            document.querySelectorAll('#algorithmList input[type="checkbox"]:checked').forEach(cb => {
+                selected.push(cb.id);
+            });
+            
+            if (selected.length === 0) return;
+            
+            const data = loadData();
+            data.progress[currentCategory].selectedForReview = selected;
+            saveData(data);
+            
+            startPractice(currentCategory, true);
+        }
+
+        // Modal functions
+        function restartSession() {
+            usedAlgorithms = [];
+            currentAlgorithm = null;
+            document.getElementById('completionModal').classList.remove('active');
+            document.getElementById('algorithmDisplay').textContent = 'Clique em "Sortear Próximo" para começar';
+            document.getElementById('solutionArea').classList.remove('visible');
+            updateSessionProgress();
+            
+            // Clear auto solution timeout
+            if (autoSolutionTimeout) {
+                clearTimeout(autoSolutionTimeout);
+                autoSolutionTimeout = null;
+            }
+            
+            // Restart timer
+            stopSessionTimer();
+            startSessionTimer();
+        }
+
+        function closeModal() {
+            document.getElementById('completionModal').classList.remove('active');
+            stopSessionTimer();
+            goHome();
+        }
+
+        // Settings functions
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+            document.getElementById('darkModeSwitch').classList.toggle('active');
+            
+            const data = loadData();
+            data.settings.theme = document.body.classList.contains('dark') ? 'dark' : 'light';
+            saveData(data);
+        }
+
+        function toggleAnimations() {
+            const switch_ = document.getElementById('animationsSwitch');
+            switch_.classList.toggle('active');
+            
+            const data = loadData();
+            data.settings.animations = switch_.classList.contains('active');
+            saveData(data);
+            
+            if (data.settings.animations) {
+                document.body.classList.remove('no-animations');
+            } else {
+                document.body.classList.add('no-animations');
+            }
+        }
+
+        function toggleSounds() {
+            const switch_ = document.getElementById('soundsSwitch');
+            switch_.classList.toggle('active');
+            
+            const data = loadData();
+            data.settings.sounds = switch_.classList.contains('active');
+            saveData(data);
+        }
+
+        function toggleTimer() {
+            const switch_ = document.getElementById('timerSwitch');
+            switch_.classList.toggle('active');
+            
+            const data = loadData();
+            data.settings.showTimer = switch_.classList.contains('active');
+            saveData(data);
+        }
+
+        function toggleAutoSolution() {
+            const switch_ = document.getElementById('autoSolutionSwitch');
+            switch_.classList.toggle('active');
+            
+            const data = loadData();
+            data.settings.autoSolution = switch_.classList.contains('active');
+            saveData(data);
+        }
+
+        function toggleIncludeMastered() {
+            const switch_ = document.getElementById('includeMasteredSwitch');
+            switch_.classList.toggle('active');
+            
+            const data = loadData();
+            data.settings.includeMastered = switch_.classList.contains('active');
+            saveData(data);
+        }
+
+        function exportData() {
+            const data = loadData();
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportName = `cube-trainer-backup-${new Date().toISOString().slice(0,10)}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportName);
+            linkElement.click();
+        }
+
+        function importData() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.progress && data.settings) {
+                        localStorage.setItem('cubeTrainerData', JSON.stringify(data));
+                        alert('Dados importados com sucesso!');
+                        location.reload();
+                    } else {
+                        alert('Arquivo inválido!');
+                    }
+                } catch (error) {
+                    alert('Erro ao importar arquivo!');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Reset functions with modal
+        function showResetModal(target) {
+            resetTarget = target;
+            const modal = document.getElementById('resetModal');
+            const title = document.getElementById('resetModalTitle');
+            const text = document.getElementById('resetModalText');
+            
+            if (target === 'ALL') {
+                title.textContent = '⚠️ Resetar Todos os Dados';
+                text.textContent = 'Tem certeza que deseja apagar TODO o progresso de F2L, OLL e PLL? Esta ação é irreversível!';
+            } else {
+                title.textContent = `Resetar ${target}`;
+                text.textContent = `Tem certeza que deseja apagar todo o progresso de ${target}?`;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').classList.remove('active');
+            resetTarget = '';
+        }
+
+        function confirmReset() {
+            if (resetTarget === 'ALL') {
+                localStorage.removeItem('cubeTrainerData');
+                location.reload();
+            } else {
+                const data = loadData();
+                data.progress[resetTarget] = {
+                    completed: [],
+                    mastered: [],
+                    selectedForReview: []
+                };
+                saveData(data);
+                updateHomeScreen();
+                updateStats();
+                closeResetModal();
+                alert(`Progresso de ${resetTarget} foi resetado com sucesso!`);
+            }
+        }
+
+        function resetCategory(category) {
+            showResetModal(category);
+        }
+
+        function resetAll() {
+            showResetModal('ALL');
+        }
+
+        function updateStats() {
+            const statsElement = document.getElementById('statsText');
+            if (!statsElement) return;
+            
+            const data = loadData();
+            let totalCompleted = 0;
+            let totalMastered = 0;
+            
+            ['F2L', 'OLL', 'PLL'].forEach(category => {
+                totalCompleted += data.progress[category].completed.length;
+                totalMastered += data.progress[category].mastered.length;
+            });
+            
+            const statsText = `
+                Total de sessões: ${data.statistics.totalSessions || 0}<br>
+                Algoritmos praticados: ${data.statistics.totalAlgorithmsPracticed || 0}<br>
+                Algoritmos únicos completados: ${totalCompleted}/119<br>
+                Algoritmos dominados: ${totalMastered}/119
+            `;
+            
+            statsElement.innerHTML = statsText;
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
