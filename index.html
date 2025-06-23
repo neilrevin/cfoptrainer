@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark" data-font-size="medium">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treinador de Algoritmos - Cubo Mágico</title>
+    <meta name="description" content="Aplicação web interativa para treino de algoritmos F2L, OLL e PLL do Cubo Mágico, com sistema de revisão personalizada e sorteio sem repetição.">
+    <meta name="theme-color" content="#111827">
+    <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;Treinador de Cubo&quot;,&quot;short_name&quot;:&quot;Cubo&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#111827&quot;,&quot;theme_color&quot;:&quot;#111827&quot;,&quot;description&quot;:&quot;Treino de algoritmos F2L, OLL, e PLL.&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='85' font-size='90'%3E क्यूब %3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
+
+    <style>
+        /* CSS Reset and Base Styles */
+        :root {
+            --font-size-small: 14px;
+            --font-size-medium: 16px;
+            --font-size-large: 18px;
+            --font-algo-small: 1.5rem;
+            --font-algo-medium: 2rem;
+            --font-algo-large: 2.5rem;
+
+            /* Light Theme */
+            --color-primary-light: #2563eb;
+            --color-secondary-light: #10b981;
+            --color-tertiary-light: #f59e0b;
+            --color-background-light: #f3f4f6;
+            --color-surface-light: #ffffff;
+            --color-text-primary-light: #111827;
+            --color-text-secondary-light: #6b7280;
+            --color-border-light: #e5e7eb;
+
+            /* Dark Theme */
+            --color-primary-dark: #3b82f6;
+            --color-secondary-dark: #10b981;
+            --color-tertiary-dark: #f59e0b;
+            --color-background-dark: #111827;
+            --color-surface-dark: #1f2937;
+            --color-text-primary-dark: #f9fafb;
+            --color-text-secondary-dark: #9ca3af;
+            --color-border-dark: #374151;
+        }
+
+        [data-theme="light"] {
+            --primary: var(--color-primary-light);
+            --secondary: var(--color-secondary-light);
+            --tertiary: var(--color-tertiary-light);
+            --background: var(--color-background-light);
+            --surface: var(--color-surface-light);
+            --text-primary: var(--color-text-primary-light);
+            --text-secondary: var(--color-text-secondary-light);
+            --border: var(--color-border-light);
+        }
+
+        [data-theme="dark"] {
+            --primary: var(--color-primary-dark);
+            --secondary: var(--color-secondary-dark);
+            --tertiary: var(--color-tertiary-dark);
+            --background: var(--color-background-dark);
+            --surface: var(--color-surface-dark);
+            --text-primary: var(--color-text-primary-dark);
+            --text-secondary: var(--color-text-secondary-dark);
+            --border: var(--color-border-dark);
+        }
+
+        [data-font-size="small"] { --font-base: var(--font-size-small); --font-algo: var(--font-algo-small); }
+        [data-font-size="medium"] { --font-base: var(--font-size-medium); --font-algo: var(--font-algo-medium); }
+        [data-font-size="large"] { --font-base: var(--font-size-large); --font-algo: var(--font-algo-large); }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            font-size: var(--font-base);
+            line-height: 1.6;
+            transition: background-color 300ms, color 300ms;
+            overscroll-behavior-y: contain;
+        }
+
+        main {
+            padding-top: 70px;
+            padding-bottom: 20px;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 300ms ease-in-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            height: 60px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .app-header h1 {
+            font-size: 1.25rem;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 300ms ease;
+            min-height: 44px;
+            min-width: 44px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .btn-secondary {
+            background-color: var(--surface);
+            border-color: var(--border);
+        }
+        .btn-secondary:hover {
+            background-color: var(--background);
+        }
+        .btn-warning {
+            background-color: var(--tertiary);
+            color: white;
+            border-color: var(--tertiary);
+        }
+        .btn-warning:hover {
+            opacity: 0.9;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 1.75rem;
+            padding: 5px;
+        }
+
+        /* Home Screen */
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (min-width: 768px) {
+            .category-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .category-card {
+            background-color: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .category-card h2 {
+            font-size: 1.75rem;
+            margin-bottom: 10px;
+        }
+        .category-card .icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .category-card .progress-text {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .category-card .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .category-card .reset-btn {
+            margin-top: 15px;
+            background: none;
+            border: none;
+            color: var(--tertiary);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .global-reset-container {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background-color: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        /* Training Screen */
+        .train-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .train-header h2 {
+            font-size: 1.5rem;
+        }
+        .algo-display {
+            background-color: var(--surface);
+            padding: 40px 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            perspective: 1000px;
+        }
+        #algo-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .algo-display.flipped #algo-card-inner {
+            transform: rotateY(180deg);
+        }
+        .algo-card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .algo-card-back {
+            transform: rotateY(180deg);
+        }
+        .algo-text {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: var(--font-algo);
+            font-weight: bold;
+            word-wrap: break-word;
+            padding: 10px;
+        }
+        .status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: white;
+            display: none; /* Hidden by default */
+        }
+        .status-dominado { 
+            background-color: var(--secondary); 
+            display: inline-block;
+        }
+        
+        .train-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        @media (min-width: 768px) {
+            .train-controls {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        /* Selection Screen */
+        .selection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .algo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .algo-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background-color: var(--surface);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .algo-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .algo-item-details {
+            flex-grow: 1;
+        }
+        .algo-item-details .case-id {
+            font-weight: bold;
+        }
+        .algo-item-details .algo-code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        .selection-footer {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .selection-footer p {
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        /* Settings Screen */
+        .settings-group {
+            margin-bottom: 30px;
+        }
+        .settings-group h3 {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        /* Toggle Switch */
+        .switch {
+          position: relative;
+          display: inline-block;
+          width: 60px;
+          height: 34px;
+        }
+        .switch input { 
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          transition: .4s;
+          border-radius: 34px;
+        }
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          transition: .4s;
+          border-radius: 50%;
+        }
+        input:checked + .slider {
+          background-color: var(--primary);
+        }
+        input:checked + .slider:before {
+          transform: translateX(26px);
+        }
+
+        /* End Session Modal */
+        #end-session-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        #end-session-modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: var(--surface);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .modal-content h3 {
+            margin-bottom: 10px;
+        }
+        .modal-content p {
+            margin-bottom: 25px;
+            color: var(--text-secondary);
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .modal-actions .btn {
+            flex-grow: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <h1 id="app-title">Treinador de Algoritmos</h1>
+        <button id="settings-btn" class="btn btn-icon">⚙️</button>
+    </header>
+
+    <main>
+        <section id="home-screen" class="screen active">
+            <div class="container">
+                <div class="category-grid">
+                    <div class="category-card" data-category="F2L">
+                        <div class="icon">🔄</div>
+                        <h2>F2L</h2>
+                        <p class="progress-text" id="F2L-progress">0/41</p>
+                        <div class="actions">
+                            <button class="btn btn-primary train-all">Treinar Todos</button>
+                            <button class="btn btn-secondary select-review">Selecionar para Revisão</button>
+                            <button class="btn btn-warning train-not-mastered">Treinar não Dominados</button>
+                        </div>
+                        <button class="reset-btn" data-category="F2L">Resetar Progresso F2L</button>
+                    </div>
+                    <div class="category-card" data-category="OLL">
+                        <div class="icon">⬆️</div>
+                        <h2>OLL</h2>
+                        <p class="progress-text" id="OLL-progress">0/57</p>
+                        <div class="actions">
+                            <button class="btn btn-primary train-all">Treinar Todos</button>
+                            <button class="btn btn-secondary select-review">Selecionar para Revisão</button>
+                            <button class="btn btn-warning train-not-mastered">Treinar não Dominados</button>
+                        </div>
+                        <button class="reset-btn" data-category="OLL">Resetar Progresso OLL</button>
+                    </div>
+                    <div class="category-card" data-category="PLL">
+                        <div class="icon">↩️</div>
+                        <h2>PLL</h2>
+                        <p class="progress-text" id="PLL-progress">0/21</p>
+                        <div class="actions">
+                            <button class="btn btn-primary train-all">Treinar Todos</button>
+                            <button class="btn btn-secondary select-review">Selecionar para Revisão</button>
+                            <button class="btn btn-warning train-not-mastered">Treinar não Dominados</button>
+                        </div>
+                         <button class="reset-btn" data-category="PLL">Resetar Progresso PLL</button>
+                    </div>
+                </div>
+                 <div class="global-reset-container">
+                    <button id="reset-all-data-btn" class="btn btn-secondary">Resetar Todos os Dados</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="train-screen" class="screen">
+            <div class="container">
+                <div class="train-header">
+                    <button id="train-back-btn" class="btn btn-secondary">← Voltar</button>
+                    <h2 id="train-title">Treino</h2>
+                    <span id="train-progress-counter">1/41</span>
+                </div>
+                <div class="algo-display" id="algo-display">
+                     <div id="algo-card-inner">
+                        <div class="algo-card-face algo-card-front">
+                           <p id="algo-text-case" class="algo-text">R U R'</p>
+                        </div>
+                        <div class="algo-card-face algo-card-back">
+                            <p id="algo-text-solution" class="algo-text">R U' R'</p>
+                        </div>
+                    </div>
+                    <span id="status-badge" class="status-badge"></span>
+                </div>
+                <div class="train-controls">
+                    <button id="toggle-solution-btn" class="btn btn-secondary">Mostrar Solução</button>
+                    <button id="mastered-btn" class="btn btn-secondary">Marcar como Dominado</button>
+                    <button id="next-algo-btn" class="btn btn-primary">Sortear Próximo</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="select-screen" class="screen">
+            <div class="container">
+                <div class="selection-header">
+                    <button id="select-back-btn" class="btn btn-secondary">← Voltar</button>
+                    <h2 id="select-title">Selecionar para Revisão</h2>
+                </div>
+                <div class="filter-controls">
+                    <button id="select-all-btn" class="btn btn-secondary">Selecionar Todos</button>
+                    <button id="clear-selection-btn" class="btn btn-secondary">Limpar</button>
+                    <button id="select-not-mastered-btn" class="btn btn-secondary">Não Dominados</button>
+                </div>
+                <div class="filter-controls">
+                    <span>Adicionar:</span>
+                    <button class="btn btn-secondary quick-add" data-amount="5">+5</button>
+                    <button class="btn btn-secondary quick-add" data-amount="10">+10</button>
+                    <button class="btn btn-secondary quick-add" data-amount="20">+20</button>
+                </div>
+                <div id="algo-list" class="algo-list">
+                    </div>
+                <div class="selection-footer">
+                    <p id="selection-counter">0 algoritmos selecionados</p>
+                    <button id="start-review-btn" class="btn btn-primary" disabled>Iniciar Revisão</button>
+                </div>
+            </div>
+        </section>
+        
+        <section id="settings-screen" class="screen">
+            <div class="container">
+                <div class="train-header">
+                    <button id="settings-back-btn" class="btn btn-secondary">← Voltar</button>
+                    <h2>Configurações</h2>
+                    <div></div>
+                </div>
+                
+                <div class="settings-group">
+                    <h3>Visual</h3>
+                    <div class="setting-item">
+                        <label for="theme-toggle">Modo Escuro</label>
+                        <label class="switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                     <div class="setting-item">
+                        <label for="font-size-select">Tamanho da Fonte</label>
+                        <select id="font-size-select" class="btn btn-secondary">
+                            <option value="small">Pequena</option>
+                            <option value="medium">Média</option>
+                            <option value="large">Grande</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3>Treino</h3>
+                     <div class="setting-item">
+                        <label for="include-mastered-toggle">Incluir dominados no "Treinar Todos"</label>
+                        <label class="switch">
+                            <input type="checkbox" id="include-mastered-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label for="reverse-mode-toggle">Modo Reverso (mostrar solução primeiro)</label>
+                        <label class="switch">
+                            <input type="checkbox" id="reverse-mode-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <div id="end-session-modal">
+        <div class="modal-content">
+            <h3>Sessão Concluída!</h3>
+            <p>Você praticou todos os algoritmos disponíveis nesta sessão.</p>
+            <div class="modal-actions">
+                <button id="modal-back-btn" class="btn btn-secondary">❌ Voltar</button>
+                <button id="modal-restart-btn" class="btn btn-primary">✅ Recomeçar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        const algorithmData = {
+            F2L: [
+                { id: 1, setup: "R U' R'", solution: "R U R'" }, { id: 2, setup: "L' U L", solution: "L' U' L" },
+                { id: 3, setup: "R U R' U'", solution: "U R U' R'" }, { id: 4, setup: "L' U' L U", solution: "U' L' U L" },
+                { id: 5, setup: "F' U' F U R U R' U'", solution: "U R U' R' U' F' U F" }, { id: 6, setup: "F U F' U' L' U' L U", solution: "U' L' U L U F U' F'" },
+                { id: 7, setup: "L' U' L U L' U' L", solution: "L' U L U' L' U L" }, { id: 8, setup: "R U' R' U R U' R'", solution: "R U R' U' R U R'" },
+                { id: 9, setup: "R U R' U' R U R'", solution: "R U' R' U R U' R'" }, { id: 10, setup: "L' U L U' L' U L", solution: "L' U' L U L' U' L" },
+                { id: 11, setup: "R U' R' U R U' R' U R U' R'", solution: "R U R' U' R U R' U' R U R'" }, { id: 12, setup: "L' U2 L y' R U R'", solution: "R U' R' y L' U2 L" },
+                { id: 13, setup: "R U' R' U2 R U' R' U'", solution: "U R U R' U2 R U R'" }, { id: 14, setup: "R U' R' U F' U F U'", solution: "U F' U' F U' R U R'" },
+                { id: 15, setup: "R U R' U2 R U R' U", solution: "U' R U' R' U2 R U' R'" }, { id: 16, setup: "R' U R Dw' R U' R' U", solution: "U' R U R' Dw R' U' R" },
+                { id: 17, setup: "R' U R Dw' U' R U R'", solution: "R U' R' U Dw R' U' R" }, { id: 18, setup: "R' U' R U2 R' U2 R Dw'", solution: "Dw R' U2 R U2 R' U R" },
+                { id: 19, setup: "R' U' R U2 R' U R Dw'", solution: "Dw R' U' R U2 R' U R" }, { id: 20, setup: "R U' R' U' R U R' U", solution: "U' R U' R' U R U R'" },
+                { id: 21, setup: "R U' R' U' R U' R' U", solution: "U' R U R' U R U R'" }, { id: 22, setup: "R U' R' Dw R' U2 R Dw'", solution: "Dw R' U2 R Dw' R U R'" },
+                { id: 23, setup: "R U R' U' R U R' U2 R U' R'", solution: "R U R' U2 R U' R' U R U' R'" }, { id: 24, setup: "R U R' U2 R U2 R' U", solution: "U' R U2 R' U2 R U' R'" },
+                { id: 25, setup: "R U R' U2 R U' R' U", solution: "U' R U R' U2 R U' R'" }, { id: 26, setup: "R' U R U R' U' R Dw'", solution: "Dw R' U R U' R' U' R" },
+                { id: 27, setup: "F' U F U' R U R' U", solution: "U' R U' R' U F' U' F" }, { id: 28, setup: "F' U F U' R U2 R' U", solution: "U' R U2 R' U F' U' F" },
+                { id: 29, setup: "R U' R' U R U' R' U2 R U' R'", solution: "R U R' U2 R U R' U' R U R'" }, { id: 30, setup: "R U R' U' R U' R' U2", solution: "U2 R U R' U R U' R'" },
+                { id: 31, setup: "R U R' U' R U2 R' U'", solution: "U R U2 R' U R U' R'" }, { id: 32, setup: "R U' R' U R U2 R'", solution: "R U2 R' U' R U R'" },
+                { id: 33, setup: "R U R' F R U R' U' F'", solution: "F U R U' R' F' R U' R'" }, { id: 34, setup: "F' L' U2 L F", solution: "F' L' U2 L F" },
+                { id: 35, setup: "L' U' L U L' U2 L U y'", solution: "y U' L' U2 L U' L' U L" }, { id: 36, setup: "L' U L U' L' U2 L y'", solution: "y L' U2 L U L' U' L" },
+                { id: 37, setup: "R' U2 R U' R' U2 R Dw' R U R'", solution: "R U' R' Dw R' U2 R U R' U2 R" }, { id: 38, setup: "R U' R' U' R U R' U2 R U' R'", solution: "R U R' U2 R U' R' U R U R'" },
+                { id: 39, setup: "R U' R' U R U2 R' U R U' R'", solution: "R U R' U' R U2 R' U' R U R'" }, { id: 40, setup: "F' U F U2 R U R' U R U' R'", solution: "R U R' U' R U' R' U2 F' U' F" },
+                { id: 41, setup: "R' U R U R' U R Dw' R U R'", solution: "R U' R' Dw R' U' R U' R' U' R" }
+            ],
+            OLL: [
+                { id: 1, setup: "R U2 R' U' R U' R'", solution: "R U R' U R U2 R'" },
+                { id: 2, setup: "R' U2 R U R' U R", solution: "R' U' R U' R' U2 R" },
+                { id: 3, setup: "R U2 R' U' R U R' U' R U' R'", solution: "R U R' U R U' R' U R U2 R'" },
+                { id: 4, setup: "R' U2 R2 U R2 U R2 U2 R'", solution: "R U2 R2 U' R2 U' R2 U2 R" },
+                { id: 5, setup: "F R' F' Rw U R U' Rw'", solution: "Rw U R' U' Rw' F R F'" },
+                { id: 6, setup: "R' U2 R' D' R U2 R' D R2", solution: "R2 D' R U2 R' D R U2 R" },
+                { id: 7, setup: "F' L' F R' F' L F R", solution: "R' F' L' F R F' L F" },
+                { id: 8, setup: "F U R U' R' F'", solution: "F R U R' U' F'" },
+                { id: 9, setup: "F R' F' R U R U' R'", solution: "R U R' U' R' F R F'" },
+                { id: 10, setup: "F R U R' U' F'", solution: "F U R U' R' F'" },
+                { id: 11, setup: "R' F' U' F U R", solution: "R' U' F' U F R" },
+                { id: 12, setup: "Fw R' F' R U R U' R' S'", solution: "S R U R' U' R' F R Fw'" },
+                { id: 13, setup: "R' F R U R' U' F' U R", solution: "R' U' F U R U' R' F' R" },
+                { id: 14, setup: "F U R U' R' U R U' R' F'", solution: "F R U R' U' R U R' U' F'" },
+                { id: 15, setup: "R' U' F R' F' R F R' F' R U R", solution: "R' U' R' F R F' R' F R F' U R" },
+                { id: 16, setup: "Lw' U2 L U L' U' L U L' U Lw", solution: "Lw' U' L U' L' U L U' L' U2 Lw" },
+                { id: 17, setup: "Rw U2 R' U' R U R' U' R U' Rw'", solution: "Rw U R' U R U' R' U R U2 Rw'" },
+                { id: 18, setup: "R B' R2 F R2 B R2 F' R", solution: "R' F R2 B' R2 F' R2 B R'" },
+                { id: 19, setup: "Rw' U Rw2 U' Rw2 U' Rw2 U Rw'", solution: "Rw U' Rw2 U Rw2 U Rw2 U' Rw" },
+                { id: 20, setup: "R U R' U' R' F R F'", solution: "F R' F' R U R U' R'" },
+                { id: 21, setup: "R U2 R' F R' F' R2 U2 R'", solution: "R U2 R2 F R F' R U2 R'" },
+                { id: 22, setup: "Lw' U' L U' L' U2 Lw", solution: "Lw' U2 L U L' U Lw" },
+                { id: 23, setup: "Rw U R' U R U2 Rw'", solution: "Rw U2 R' U' R U' Rw'" },
+                { id: 24, setup: "Rw U2 R' U' R U' Rw'", solution: "Rw U R' U R U2 Rw'" },
+                { id: 25, setup: "Lw' U2 L U L' U Lw", solution: "Lw' U' L U' L' U2 Lw" },
+                { id: 26, setup: "M U' R U2 R' U' R U' R' M'", solution: "M R U R' U R U2 R' U M'" },
+                { id: 27, setup: "M' U R' U2 R U R' U R M", solution: "M' R' U' R U' R' U2 R U' M" },
+                { id: 28, setup: "Rw U R' U' Rw' R U R U' R'", solution: "R U R' U' Rw R' U R U' Rw'" },
+                { id: 29, setup: "R U R' U' Rw R' U R U' Rw'", solution: "Rw U R' U' Rw' R U R U' R'" },
+                { id: 30, setup: "F R U R' U' R U R' U' F'", solution: "F U R U' R' U R U' R' F'" },
+                { id: 31, setup: "R U' R' U' R U R2 F R2 U R' U' R' F' R", solution: "R' F R U R U' R2 F' R2 U' R' U R U R'" },
+                { id: 32, setup: "R' U' R U' R' U F' U F R", solution: "R' F' U' F U' R U R' U R" },
+                { id: 33, setup: "Rw U Rw' R U R' U' R U R' U' Rw U' Rw'", solution: "Rw U Rw' U R U' R' U R U' R' Rw U' Rw'" },
+                { id: 34, setup: "R' U' F R' F' R U R", solution: "R' U' R' F R F' U R" },
+                { id: 35, setup: "F U R' U' R' F' R U R2 U' R'", solution: "R U R2 U' R' F R U R U' F'" },
+                { id: 36, setup: "F R' F' R U R U R' U' R U' R'", solution: "R U R' U R U' R' U' R' F R F'" },
+                { id: 37, setup: "F' L F L' U' L' U' L U L' U L", solution: "L' U' L U' L' U L U L F' L' F" },
+                { id: 38, setup: "L F' L' U' L U F U' L'", solution: "L F' L' U' L U F U' L'" },
+                { id: 39, setup: "R' U' F U R U' R' F' R", solution: "R' F R U R' U' F' U R" },
+                { id: 40, setup: "F U F' R' F R U' R' F' R", solution: "R' F R U R' F' R F U' F'" },
+                { id: 41, setup: "F' U' F Rw U' Rw' U Rw U Rw'", solution: "Rw U' Rw' U' Rw U Rw' F' U F" },
+                { id: 42, setup: "Rw U Rw' U R U' M' U' Rw'", solution: "Rw U M U R' U' Rw U' Rw'" },
+                { id: 43, setup: "Lw' U' Lw U' L' U M' U Lw", solution: "Lw' U' M U' L U Lw' U Lw" },
+                { id: 44, setup: "R U' R' F' U F R U R' U R U' R'", solution: "R U R' U' R U' R' F' U' F R U R'" },
+                { id: 45, setup: "F U R U2 R' U R U2 R' U' F'", solution: "F U R U2 R' U' R U2 R' U' F'" },
+                { id: 46, setup: "F U R U' R' F' R U2 R' U' R U' R'", solution: "R U R' U R U2 R' F R U R' U' F'" },
+                { id: 47, setup: "F U R U' R' F' R' U2 R U R' U R", solution: "R' U' R U' R' U2 R F R U R' U' F'" },
+                { id: 48, setup: "F U R U' R2 F' R U R U' R'", solution: "R U R' U' R' F R2 U R' U' F'" },
+                { id: 49, setup: "R U2 R' F R' F' R U' R U' R'", solution: "R U R' U R' F R F' R U2 R'" },
+                { id: 50, setup: "Rw U R' U' M2 U R U' R' U' M'", solution: "Rw U R' U' M2 U R U' R' U' M' Rw" },
+                { id: 51, setup: "F R' F' R2 Rw' U R U' R' U' R' Rw", solution: "Rw' R U R U R' U' Rw R2 F R F'" },
+                { id: 52, setup: "Rw' U2 R U R' U Rw2 U2 R' U' R U' Rw'", solution: "Rw U R' U R U2 Rw2 U' R U' R' U2 Rw" },
+                { id: 53, setup: "F R' F' R U2 F R' F' R U' R U' R'", solution: "R U R' U R' F R F' U2 R' F R F'" },
+                { id: 54, setup: "F U R U' R' F' U Fw U R U' R' Fw'", solution: "Fw R U R' U' Fw' U' F R U R' U' F'" },
+                { id: 55, setup: "F U R U' R' F' U' Fw U R U' R' Fw'", solution: "Fw R U R' U' Fw' U F R U R' U' F'" },
+                { id: 56, setup: "R U' R2 D' Rw U' Rw' D R2 U R'", solution: "R U' R2 D' Rw U Rw' D R2 U R'" },
+                { id: 57, setup: "F R' F' R U2 F R' F' R2 U2 R'", solution: "R U2 R2 F R F' U2 R' F R F'" }
+            ],
+            PLL: [
+                { id: 1, caseName: 'Ub', setup: "R2 U' R' U' R U R U R U' R", solution: "R' U R' U' R' U' R' U R U R2" },
+                { id: 2, caseName: 'Ua', setup: "R' U R' U' R' U' R' U R U R2", solution: "R2 U' R' U' R U R U R U' R" },
+                { id: 3, caseName: 'H', setup: "M2 U M2 U2 M2 U M2", solution: "M2 U M2 U2 M2 U M2" },
+                { id: 4, caseName: 'Z', setup: "M2 U M2 U M' U2 M2 U2 M' U2", solution: "M2 U M2 U M' U2 M2 U2 M' U2" },
+                { id: 5, caseName: 'Ab', setup: "x R' U R' D2 R U' R' D2 R2", solution: "x R2 D2 R U R' D2 R U' R" },
+                { id: 6, caseName: 'Aa', setup: "x R2 D2 R U R' D2 R U' R", solution: "x R' U R' D2 R U' R' D2 R2" },
+                { id: 7, caseName: 'T', setup: "R U R' U' R' F R2 U' R' U' R U R' F'", solution: "R U R' U' R' F R2 U' R' U' R U R' F'" },
+                { id: 8, caseName: 'F', setup: "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R", solution: "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R" },
+                { id: 9, caseName: 'Y', setup: "F R U' R' U' R U R' F' R U R' U' R' F R F'", solution: "F R U' R' U' R U R' F' R U R' U' R' F R F'" },
+                { id: 10, caseName: 'E', setup: "x' R U' R' D R U R' D' R U R' D R U' R' D'", solution: "x' R U' R' D R U R' D' R U R' D R U' R' D'" },
+                { id: 11, caseName: 'Ja', setup: "R U R' F' R U R' U' R' F R2 U' R' U'", solution: "R U R' F' R U R' U' R' F R2 U' R' U'" },
+                { id: 12, caseName: 'Jb', setup: "x R2 F R F' R U2 Rw' U Rw U2 x'", solution: "x R2 F R F' R U2 Rw' U Rw U2 x'" },
+                { id: 13, caseName: 'Ra', setup: "R' U2 R U2 R' F R U R' U' R' F' R2 U'", solution: "R' U2 R U2 R' F R U R' U' R' F' R2 U'" },
+                { id: 14, caseName: 'Rb', setup: "R U' R' U' R U R D R' U' R D' R' U2 R'", solution: "R U' R' U' R U R D R' U' R D' R' U2 R'" },
+                { id: 15, caseName: 'Na', setup: "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'", solution: "R U R' U R U R' F' R U R' U' R' F R2 U' R' U2 R U' R'" },
+                { id: 16, caseName: 'Nb', setup: "R' U R U' R' F' U' F R U R' F R' F' R U' R", solution: "R' U R U' R' F' U' F R U R' F R' F' R U' R" },
+                { id: 17, caseName: 'V', setup: "R' U R' U' y R' F' R2 U' R' U R' F R F", solution: "R' U R' U' y R' F' R2 U' R' U R' F R F" },
+                { id: 18, caseName: 'Ga', setup: "D R' U' R D' U R2 U R' U R U' R U' R2", solution: "R2 U R' U R' U' R U' R2 U' D R' U R D'" },
+                { id: 19, caseName: 'Gb', setup: "D' R2 U R' U R U' R U' R2 D", solution: "R' U' R U D' R2 U R' U R U' R U' R2 D" },
+                { id: 20, caseName: 'Gc', setup: "D' R U R' D U' R2 U' R U' R' U R' U R2", solution: "R2 U' R U' R U R' U R2 U D' R U' R' D" },
+                { id: 21, caseName: 'Gd', setup: "D R2 U' R U' R U R' U R2 D' U R U' R'", solution: "R U R' U' D R2 U' R U' R' U R' U R2 D'" }
+            ]
+        };
+        
+        // App state
+        let state = {
+            currentScreen: 'home-screen',
+            currentCategory: null,
+            isReviewMode: false,
+            sessionAlgos: [],
+            currentAlgoIndex: -1,
+            progress: {
+                F2L: { mastered: [], selectedForReview: [] },
+                OLL: { mastered: [], selectedForReview: [] },
+                PLL: { mastered: [], selectedForReview: [] }
+            },
+            settings: {
+                theme: 'dark',
+                fontSize: 'medium',
+                includeMastered: false,
+                reverseMode: false
+            }
+        };
+
+        // DOM Elements
+        const screens = document.querySelectorAll('.screen');
+        const appTitle = document.getElementById('app-title');
+        const endSessionModal = document.getElementById('end-session-modal');
+        const htmlEl = document.documentElement;
+        
+        // --- Core Functions ---
+
+        const saveState = () => {
+            try {
+                localStorage.setItem('magicCubeTrainerState', JSON.stringify(state));
+            } catch (e) {
+                console.error("Could not save state to localStorage", e);
+            }
+        };
+
+        const loadState = () => {
+            try {
+                const savedState = localStorage.getItem('magicCubeTrainerState');
+                if (savedState) {
+                    const parsedState = JSON.parse(savedState);
+                    state.progress = { ...state.progress, ...parsedState.progress };
+                    state.settings = { ...state.settings, ...parsedState.settings };
+                }
+            } catch (e) {
+                console.error("Could not load state from localStorage", e);
+            }
+        };
+
+        const showScreen = (screenId) => {
+            state.currentScreen = screenId;
+            screens.forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo(0, 0);
+        };
+
+        const applySettings = () => {
+            htmlEl.setAttribute('data-theme', state.settings.theme);
+            document.getElementById('theme-toggle').checked = state.settings.theme === 'dark';
+
+            htmlEl.setAttribute('data-font-size', state.settings.fontSize);
+            document.getElementById('font-size-select').value = state.settings.fontSize;
+
+            document.getElementById('include-mastered-toggle').checked = state.settings.includeMastered;
+            document.getElementById('reverse-mode-toggle').checked = state.settings.reverseMode;
+        };
+
+        // --- Rendering Functions ---
+
+        const renderHomeScreen = () => {
+            appTitle.textContent = 'Treinador de Algoritmos';
+            ['F2L', 'OLL', 'PLL'].forEach(cat => {
+                const total = algorithmData[cat].length;
+                const masteredCount = state.progress[cat].mastered.length;
+                document.getElementById(`${cat}-progress`).textContent = `${masteredCount} / ${total} dominados`;
+            });
+            showScreen('home-screen');
+        };
+        
+        const renderTrainScreen = () => {
+            if (state.currentAlgoIndex < 0 || state.sessionAlgos.length === 0) {
+                renderHomeScreen();
+                return;
+            }
+            
+            const algo = state.sessionAlgos[state.currentAlgoIndex];
+            const category = state.currentCategory;
+            
+            const titlePrefix = state.isReviewMode ? 'Revisão' : 'Treino';
+            document.getElementById('train-title').textContent = `${titlePrefix} - ${category}`;
+            document.getElementById('train-progress-counter').textContent = `${state.currentAlgoIndex + 1} / ${state.sessionAlgos.length}`;
+
+            const frontText = state.settings.reverseMode ? algo.solution : algo.setup;
+            const backText = state.settings.reverseMode ? algo.setup : algo.solution;
+
+            document.getElementById('algo-text-case').textContent = frontText;
+            document.getElementById('algo-text-solution').textContent = backText;
+            
+            const algoDisplay = document.getElementById('algo-display');
+            algoDisplay.classList.remove('flipped');
+            document.getElementById('toggle-solution-btn').textContent = "Mostrar Solução";
+            
+            const badge = document.getElementById('status-badge');
+            const isMastered = state.progress[category].mastered.includes(algo.id);
+            if (isMastered) {
+                badge.textContent = 'Dominado';
+                badge.className = 'status-badge status-dominado';
+            } else {
+                 badge.className = 'status-badge'; // Reset classes, effectively hiding it via CSS
+            }
+            
+            showScreen('train-screen');
+        };
+
+        const renderSelectScreen = () => {
+            const category = state.currentCategory;
+            const algos = algorithmData[category];
+            const mastered = state.progress[category].mastered;
+            const selected = state.progress[category].selectedForReview;
+            const listEl = document.getElementById('algo-list');
+            
+            document.getElementById('select-title').textContent = `Selecionar ${category} para Revisão`;
+            listEl.innerHTML = '';
+
+            algos.forEach(algo => {
+                const isChecked = selected.includes(algo.id);
+                const isMastered = mastered.includes(algo.id);
+                const item = document.createElement('label');
+                item.className = 'algo-item';
+                item.innerHTML = `
+                    <input type="checkbox" data-id="${algo.id}" ${isChecked ? 'checked' : ''}>
+                    <div class="algo-item-details">
+                        <span class="case-id">${algo.caseName || `Caso ${String(algo.id).padStart(2, '0')}`} ${isMastered ? '✓' : ''}</span>
+                        <div class="algo-code">${algo.setup}</div>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            });
+            updateSelectionCounter();
+            showScreen('select-screen');
+        };
+
+        const renderSettingsScreen = () => {
+            appTitle.textContent = "Configurações";
+            applySettings();
+            showScreen('settings-screen');
+        };
+
+        // --- Event Handlers & Logic ---
+
+        const shuffleAndStartSession = (algosToPractice, category, isReview = false) => {
+            if (algosToPractice.length === 0) {
+                 alert(`Não há algoritmos para treinar neste modo.`);
+                return;
+            }
+            
+            state.currentCategory = category;
+            state.isReviewMode = isReview;
+
+            // Fisher-Yates shuffle for true randomness.
+            for (let i = algosToPractice.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [algosToPractice[i], algosToPractice[j]] = [algosToPractice[j], algosToPractice[i]];
+            }
+            
+            state.sessionAlgos = algosToPractice;
+            state.currentAlgoIndex = 0;
+            renderTrainScreen();
+        };
+        
+        const startTraining = (category, isReview = false) => {
+            let algosToPractice;
+            if (isReview) {
+                const selectedIds = state.progress[category].selectedForReview;
+                if (selectedIds.length === 0) return;
+                algosToPractice = algorithmData[category].filter(a => selectedIds.includes(a.id));
+            } else {
+                algosToPractice = state.settings.includeMastered
+                    ? [...algorithmData[category]]
+                    : algorithmData[category].filter(a => !state.progress[category].mastered.includes(a.id));
+            }
+            shuffleAndStartSession(algosToPractice, category, isReview);
+        };
+        
+        const startNotMasteredTraining = (category) => {
+            const algosToPractice = algorithmData[category].filter(a => !state.progress[category].mastered.includes(a.id));
+            if (algosToPractice.length === 0) {
+                alert(`Parabéns! Você já dominou todos os algoritmos de ${category}.`);
+                return;
+            }
+            shuffleAndStartSession(algosToPractice, category, false);
+        };
+
+        const drawNextAlgorithm = () => {
+            if (state.currentAlgoIndex < state.sessionAlgos.length - 1) {
+                state.currentAlgoIndex++;
+                renderTrainScreen();
+            } else {
+                endSessionModal.classList.add('active');
+            }
+        };
+
+        const updateSelectionCounter = () => {
+            const count = state.progress[state.currentCategory].selectedForReview.length;
+            document.getElementById('selection-counter').textContent = `${count} algoritmo(s) selecionado(s)`;
+            document.getElementById('start-review-btn').disabled = count === 0;
+        };
+
+        const handleReset = (category) => {
+             if (confirm(`Você tem certeza que deseja resetar todo o progresso de ${category}? Esta ação não pode ser desfeita.`)) {
+                state.progress[category].mastered = [];
+                saveState();
+                renderHomeScreen();
+            }
+        };
+
+        // --- Event Listeners ---
+        
+        document.body.addEventListener('click', e => {
+            // Home Screen
+            if (e.target.matches('.train-all')) {
+                const category = e.target.closest('.category-card').dataset.category;
+                startTraining(category, false);
+            }
+            if (e.target.matches('.select-review')) {
+                state.currentCategory = e.target.closest('.category-card').dataset.category;
+                renderSelectScreen();
+            }
+            if (e.target.matches('.train-not-mastered')) {
+                const category = e.target.closest('.category-card').dataset.category;
+                startNotMasteredTraining(category);
+            }
+             if (e.target.matches('.reset-btn')) {
+                const category = e.target.dataset.category;
+                handleReset(category);
+            }
+
+            // Training Screen
+            if (e.target.id === 'train-back-btn') renderHomeScreen();
+            if (e.target.id === 'toggle-solution-btn') {
+                const algoDisplay = document.getElementById('algo-display');
+                algoDisplay.classList.toggle('flipped');
+                e.target.textContent = algoDisplay.classList.contains('flipped') ? 'Ocultar Solução' : 'Mostrar Solução';
+            }
+            if (e.target.id === 'next-algo-btn') drawNextAlgorithm();
+            if (e.target.id === 'mastered-btn') {
+                const algo = state.sessionAlgos[state.currentAlgoIndex];
+                const masteredList = state.progress[state.currentCategory].mastered;
+                if (!masteredList.includes(algo.id)) {
+                    masteredList.push(algo.id);
+                    saveState();
+                    renderTrainScreen();
+                }
+            }
+            
+            // Selection Screen
+            if (e.target.id === 'select-back-btn') renderHomeScreen();
+            if (e.target.id === 'start-review-btn') {
+                startTraining(state.currentCategory, true);
+            }
+             if (e.target.matches('.algo-item input[type="checkbox"]')) {
+                const id = parseInt(e.target.dataset.id);
+                const selectedList = state.progress[state.currentCategory].selectedForReview;
+                if (e.target.checked) {
+                    if (!selectedList.includes(id)) selectedList.push(id);
+                } else {
+                    const index = selectedList.indexOf(id);
+                    if (index > -1) selectedList.splice(index, 1);
+                }
+                saveState();
+                updateSelectionCounter();
+            }
+            if (e.target.id === 'select-all-btn') {
+                const allIds = algorithmData[state.currentCategory].map(a => a.id);
+                state.progress[state.currentCategory].selectedForReview = [...allIds];
+                renderSelectScreen();
+                saveState();
+            }
+            if (e.target.id === 'clear-selection-btn') {
+                state.progress[state.currentCategory].selectedForReview = [];
+                renderSelectScreen();
+                saveState();
+            }
+            if (e.target.id === 'select-not-mastered-btn') {
+                const notMasteredIds = algorithmData[state.currentCategory]
+                    .filter(a => !state.progress[state.currentCategory].mastered.includes(a.id))
+                    .map(a => a.id);
+                state.progress[state.currentCategory].selectedForReview = notMasteredIds;
+                renderSelectScreen();
+                saveState();
+            }
+            if (e.target.matches('.quick-add')) {
+                const amount = parseInt(e.target.dataset.amount);
+                const allIds = algorithmData[state.currentCategory].map(a => a.id);
+                const selected = state.progress[state.currentCategory].selectedForReview;
+                const available = allIds.filter(id => !selected.includes(id));
+                const toAdd = available.slice(0, amount);
+                state.progress[state.currentCategory].selectedForReview.push(...toAdd);
+                renderSelectScreen();
+                saveState();
+            }
+            
+            // Settings
+            if (e.target.id === 'settings-btn') renderSettingsScreen();
+            if (e.target.id === 'settings-back-btn') renderHomeScreen();
+
+            // End Session Modal
+            if (e.target.id === 'modal-restart-btn') {
+                endSessionModal.classList.remove('active');
+                shuffleAndStartSession(state.sessionAlgos, state.currentCategory, state.isReviewMode);
+            }
+            if (e.target.id === 'modal-back-btn') {
+                endSessionModal.classList.remove('active');
+                renderHomeScreen();
+            }
+
+            if(e.target.id === 'reset-all-data-btn') {
+                if(confirm("TEM CERTEZA? Todos os seus dados de progresso e seleções de revisão para TODAS as categorias serão apagados permanentemente.")) {
+                    state.progress = {
+                        F2L: { mastered: [], selectedForReview: [] },
+                        OLL: { mastered: [], selectedForReview: [] },
+                        PLL: { mastered: [], selectedForReview: [] }
+                    };
+                    saveState();
+                    renderHomeScreen();
+                }
+            }
+        });
+
+        // Settings change handlers
+        document.getElementById('theme-toggle').addEventListener('change', e => {
+            state.settings.theme = e.target.checked ? 'dark' : 'light';
+            applySettings();
+            saveState();
+        });
+        document.getElementById('font-size-select').addEventListener('change', e => {
+            state.settings.fontSize = e.target.value;
+            applySettings();
+            saveState();
+        });
+        document.getElementById('include-mastered-toggle').addEventListener('change', e => {
+            state.settings.includeMastered = e.target.checked;
+            saveState();
+        });
+         document.getElementById('reverse-mode-toggle').addEventListener('change', e => {
+            state.settings.reverseMode = e.target.checked;
+            saveState();
+        });
+
+        // --- Initialization ---
+        const init = () => {
+            loadState();
+            applySettings();
+            renderHomeScreen();
+        };
+
+        init();
+    });
+    </script>
+</body>
+</html>
